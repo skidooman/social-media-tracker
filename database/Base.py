@@ -5,7 +5,7 @@ import psycopg2
 from config import config
 
 class Base:
-	def execute_commands(commands):
+	def execute_commands(commands, fetching=False):
 	    """ create tables in the PostgreSQL database"""
 	    '''commands = (
 	        """
@@ -48,19 +48,35 @@ class Base:
 	        params = config()
 	        # connect to the PostgreSQL server
 	        conn = psycopg2.connect(**params)
-	        cur = conn.cursor()
+	        print ('conn: %s' % conn)
+	        cursor = conn.cursor()
+	        print ('cursor: %s' % cursor)
 	        # create table one by one
 	        for command in commands:
-	            cur.execute(command)
-	        # close communication with the PostgreSQL database server
-	        cur.close()
-	        # commit the changes
-	        conn.commit()
-	        print ('last step')
-	        return cursor.fetchone()[0]
+	            print ('executing %s' % command)
+	            cursor.execute(command)
+	            print ('command successful')
+		# close communication with the PostgreSQL database server
+	        #returnValue = cursor.fetchone()[0]
+	        #print ('returnValue: %s' % returnValue)
+	        results = 0
+	        if fetching:
+	           results = cursor.fetchall()
+	        else:
+	           # commit the changes
+	           conn.commit()
+	        print ('committed')
+	        
+	        conn.close()
+	        print ('cursor closed')
+	        cursor.close()
+	        print ('conn closed')
+	        #print ('last step' + returnValue)
+	        return results
 	    except (Exception, psycopg2.DatabaseError) as error:
 	        print ('exception on execution')
-	        print(error)
+	        print (error)
+	        return 1
 	    finally:
 	        if conn is not None:
 	            conn.close()

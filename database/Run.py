@@ -27,6 +27,7 @@ class Run(Base):
 	@classmethod
 	def add(cls, id, user_id, date, text, social_media, date_approx=False, text_link='', image_link='', video_link='', internal_video=False):
 		#Does the entry exists?
+		print ('id %s' % id)
 		entryExists = cls.recordExistsIdString(cls.name_of_table, id)
 		if(entryExists):
 			command = ("UPDATE runs SET publication_date='%s-%s-%s', publication_date_approx='%s', text='%s', text_link='%s', image_link='%s', video_link='%s', internal_video='%s' WHERE (id='%s')" % 
@@ -35,6 +36,7 @@ class Run(Base):
 			return entryExists
 			
 		else:
+			print ('else')
 			command = ("INSERT INTO runs (id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media)"
 				"VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')") % (id, user_id, date, date_approx, text.replace('\'', '"'), text_link, image_link, video_link, internal_video, social_media)
 			return cls.execute_commands([command])
