@@ -27,24 +27,19 @@ class Run(Base):
 	@classmethod
 	def add(cls, id, user_id, date, text, social_media, date_approx=False, text_link='', image_link='', video_link='', internal_video=False):
 		#Does the entry exists?
-		print ('id %s' % id)
 		entryExists = cls.recordExistsIdString(cls.name_of_table, id)
 		if(entryExists):
-			command = ("UPDATE runs SET publication_date='%s-%s-%s', publication_date_approx='%s', text='%s', text_link='%s', image_link='%s', video_link='%s', internal_video='%s' WHERE (id='%s')" % 
+			# For the moment, let us not do anything
+			# The resolution we would get on the date is likely to be less good, at least for LinkedIn
+			'''command = ("UPDATE runs SET publication_date='%s-%s-%s', publication_date_approx='%s', text='%s', text_link='%s', image_link='%s', video_link='%s', internal_video='%s' WHERE (id='%s')" % 
 				(date.year, date.month, date.day, date_approx, text.replace('\'', '"'), text_link, image_link, video_link, internal_video, id))
-			cls.execute_commands([command])
+			cls.execute_commands([command])'''
 			return entryExists
 			
 		else:
-			print ('else')
 			command = ("INSERT INTO runs (id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media)"
 				"VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')") % (id, user_id, date, date_approx, text.replace('\'', '"'), text_link, image_link, video_link, internal_video, social_media)
 			return cls.execute_commands([command])
-		'''command = ("INSERT INTO users (first_name, last_name, email, password) "
-			"VALUES('%s', '%s', '%s', '%s')") % (firstName, lastName, email, password)
-		cls.execute_commands([command])
-		return '1' '''
-
 
 	# This imports a properly formatted JSON file
 	@classmethod
@@ -66,24 +61,24 @@ class Run(Base):
 					dateApprox = True
 					if (entry['date'].endswith('yr')):
 						year = int(entry['date'][:-2])
-						date.replace(year= date.year-year)
+						date = date.replace(year= date.year-year)
 					elif (entry['date'].endswith('mo')):
 						month = int(entry['date'][:-2])
 						if (month < date.month):
-							date.replace(month= date.month-month)
+							date = date.replace(month= date.month-month)
 						else:
 							month = date.month + (-1*(date.month-month))
-							date.replace(year=date.year-1, month=month)
+							date = date.replace(year=date.year-1, month=month)
 					elif (entry['date'].endswith('d')):
 						day = int(entry['date'][:-1])
 						if (day < date.day):
-							date.replace(day=date.day-day)
+							date = date.replace(day=date.day-day)
 						else:
 							day = date.day + (-1*(date.day-day))
 							if (date.month == 1):
-								date.replace(year=date.year-1, month=12, day=day)
+								date = date.replace(year=date.year-1, month=12, day=day)
 							else:
-								date.replace(month=date.month-1, day=day)
+								date = date.replace(month=date.month-1, day=day)
 					else:
 						print ("Date %s could not be converted on entry %s, date will be wrong (%s)" % (entry['date'], entry['id'], date))
 
@@ -100,3 +95,76 @@ class Run(Base):
 
 				# Finally, add the details of the run (data)
 				Data.add(entry['id'], user_id, reportedDate, entry['views'], entry['likes'], entry['comments'], entry['reposts'])
+
+
+	@classmethod
+	def getRecords(cls, user_id):
+        	command = "SELECT * FROM runs WHERE user_id = %s;" % user_id
+        	return cls.execute_commands([command], fetching=True)
+
+
+	#id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media
+	@classmethod
+	def getRecordsHTMLTable(cls, user_id):
+		records = cls.getRecords(user_id)
+		html = '<div class="table-wrap">\n\t<table class="sortable" border="1">'
+		html += '\n\t\t<thead>'
+		html += '\n\t\t\t<tr>'
+		html += '\n\t\t\t\t<th><button>ID</button></th>'
+		html += '\n\t\t\t\t<th><button>Date</button></th>'
+		html += '\n\t\t\t\t<th><button>Text</button></th>'
+		html += '\n\t\t\t\t<th><button>Type</button></th>'
+		html += '\n\t\t\t\t<th><button>Link</button></th>'
+		html += '\n\t\t\t\t<th><button>Media</button></th>'
+		html += '\n\t\t\t\t<th><button>Last data point</button></th>'
+		html += '\n\t\t\t\t<th><button>Views</button></th>'
+		html += '\n\t\t\t\t<th><button>Likes</button></th>'
+		html += '\n\t\t\t\t<th><button>Comments</button></th>'
+		html += '\n\t\t\t\t<th><button>Reposts</button></th>'
+		html += '\n\t\t\t</tr>'
+		html += '\n\t\t</thead>'
+
+		html += '\n\t\t<tbody>'
+		
+		for record in records:
+			html += '\n\t\t\t<tr>'
+			html += '\n\t\t\t\t<td>%s</td>' % record[0] # ID
+			html += '\n\t\t\t\t<td>%s</td>' % record[2] # Publication date
+			html += '\n\t\t\t\t<td style="max-width: 200px; overflow:hidden; text-overflow: hidden;" width="200"><div style="max-width:200px; white-space:nowrap; overflow: hidden; text-overflow: hidden;">%s</div></td>' % record[4] # Text
+			# Type
+			if record[8]:
+				html += '\n\t\t\t\t<td>Internal video</td>' 	# Internal video
+				html += '\n\t\t\t\t<td></td>' 			# No link
+			elif record[7]:
+				html += '\n\t\t\t\t<td>Internal video</td>'			# External video
+				html += '\n\t\t\t\t<td><a href="%s">Link</a></td>' % record[7]	# Link
+			elif record[7]:
+				html += '\n\t\t\t\t<td>Image</td>'				# Image link
+				html += '\n\t\t\t\t<td><a href="%s">Link</a></td>' % record[6]	# Link
+			elif record[5]:
+				html += '\n\t\t\t\t<td>Article</td>'				# External text
+				html += '\n\t\t\t\t<td><a href="%s">Link</a></td>' % record[5]	# Link
+			else:
+				html += '\n\t\t\t\t<td>Simple entry</td>'			# Simple
+				html += '\n\t\t\t\t<td></td>'					# No link
+
+
+			html += '\n\t\t\t\t<td>%s</td>' % record[9] # Social media
+
+			# Display last data point available
+			# run_id, user_id, date, views, likes, comments, reposts
+			points = Data.getRecords(user_id, record[0])
+			currentPoint = points[len(points)-1]
+			html += '\n\t\t\t\t<td>%s</td>' % currentPoint[2]
+			html += '\n\t\t\t\t<td>%s</td>' % currentPoint[3]
+			html += '\n\t\t\t\t<td>%s</td>' % currentPoint[4]
+			html += '\n\t\t\t\t<td>%s</td>' % currentPoint[5]
+			html += '\n\t\t\t\t<td>%s</td>' % currentPoint[6]
+
+			html += '\n\t\t\t</tr>'
+		
+		html += '\n\t\t\t</tr>'
+		html += '\n\t\t</tbody>'
+		html += '\n\t</table>'
+		html += '\n</div>'
+		return html

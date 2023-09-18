@@ -28,7 +28,7 @@ class Data(Base):
 	def getRecords(cls, user_id, run_id=None):
 		command = "SELECT * FROM data WHERE user_id = %s " % user_id
 		if run_id:
-			command += ", run_id = %s" % run_id
+			command += "AND run_id = '%s'" % run_id
 		command += ";"
 		return cls.execute_commands([command], fetching=True)
 
@@ -41,8 +41,8 @@ class Data(Base):
 		html += ' '
 		if not run_id:
 			html += '\n\t\t\t\t<th><button>ID</button></th>'
-		html += '\n\t\t\t\t<th><button>date</button></th>'
 		html += '\n\t\t\t\t<th><button>views</button></th>'
+		html += '\n\t\t\t\t<th><button>data</button></th>'
 		html += '\n\t\t\t\t<th><button>likes</button></th>'
 		html += '\n\t\t\t\t<th><button>comments</button></th>'
 		html += '\n\t\t\t\t<th><button>reposts</button></th>'
