@@ -90,6 +90,8 @@ class Run(Base):
 					cls.add(entry['id'], user_id, date, entry['text'], media, date_approx=dateApprox, internal_video=True)
 				elif ('text-link' in entry):
 					cls.add(entry['id'], user_id, date, entry['text'], media, date_approx=dateApprox, text_link=entry['text-link'])
+				elif ('image-link' in entry):
+					cls.add(entry['id'], user_id, date, entry['text'], media, date_approx=dateApprox, image_link=entry['image-link'])
 				else:
 					cls.add(entry['id'], user_id, date, entry['text'], media, date_approx=dateApprox)
 
@@ -98,25 +100,81 @@ class Run(Base):
 
 
 	@classmethod
-	def getRecords(cls, user_id, internal_video=None, external_video=None, video=None):
+	def getRecords(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None, simple=None):
 		command = "SELECT * FROM runs WHERE user_id = %s" % user_id
 
-		# Videos
-		if internal_video:
-			command += " AND (internal_video=true)"
-		elif external_video:
-			command += " AND (length(video_link)) > 0"
-		elif video:
-			command += " AND (internal_video=true or length(video_link) > 0)"
-		
-		command += ';'
+		def getExternals(target):
+			externals = 0
+			if image == target:
+				externals += 1
+			if external_text == target:
+				externals += 1
+			if internal_video == target:
+				externals += 1
+			if external_video == target:
+				externals += 1
+			return externals 
+
+		if simple:
+			print ("SIMPLE")
+			externals = getExternals(None)
+			if externals:
+				pos = 0
+				command += " AND ("
+				if image is None:
+					command += "NOT (length(image_link)) > 0"
+					pos += 1
+				if internal_video is None:
+					if pos:
+						command  += " AND "
+					command += "NOT (internal_video=true)"
+					pos += 1
+				if external_text is None:
+					if pos:
+						command  += " AND "
+					command += "NOT (length(text_link)) > 0"
+					pos += 1
+				if external_video is None:
+					if pos:
+						command  += " AND "
+					command += "NOT (length(video_link)) > 0"
+				command += ") "
+		else:
+			# Videos, images, text
+			externals = getExternals(True)
+			if externals:
+				pos = 0
+				command += " AND ("
+				if image:
+					command += "(length(image_link)) > 0"
+					pos += 1
+				if internal_video:
+					if pos:
+						command  += " OR "
+					command += "(internal_video=true)"
+					pos += 1
+				if external_text:
+					if pos:
+						command  += " OR "
+					command += "(length(text_link)) > 0"
+					pos += 1
+				if external_video:
+					if pos:
+						command  += " OR "
+					command += "(length(video_link)) > 0"
+				command += ") "
+			
+			command += ';'
+
+		print (command)
 		return cls.execute_commands([command], fetching=True)
 
 
 	#id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media
 	@classmethod
-	def getRecordsHTMLTable(cls, user_id, internal_video=None, external_video=None, video=None):
-		records = cls.getRecords(user_id, internal_video, external_video, video)
+	def getRecordsHTMLTable(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None,
+			simple=None):
+		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple)
 		print (records)
 		##print ('RECORDS: %s' % len(records))
 		html = '<h2>Records: %s</h2>' % len(records)
