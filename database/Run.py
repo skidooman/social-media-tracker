@@ -84,10 +84,10 @@ class Run(Base):
 
 				# Now that we have a date, we must determine which type of entry we have
 				# Internal video entry?
-				if ('internal_video' in entry):
-					cls.add(entry['id'], user_id, date, entry['text'], media, date_approx=dateApprox, internal_video=True)
-				elif ('video-link' in entry):
+				if ('video-link' in entry):
 					cls.add(entry['id'], user_id, date, entry['text'], media, date_approx=dateApprox, video_link=entry['video-link'])
+				elif ('internal_video' in entry):
+					cls.add(entry['id'], user_id, date, entry['text'], media, date_approx=dateApprox, internal_video=True)
 				elif ('text-link' in entry):
 					cls.add(entry['id'], user_id, date, entry['text'], media, date_approx=dateApprox, text_link=entry['text-link'])
 				else:
@@ -98,16 +98,29 @@ class Run(Base):
 
 
 	@classmethod
-	def getRecords(cls, user_id):
-        	command = "SELECT * FROM runs WHERE user_id = %s;" % user_id
-        	return cls.execute_commands([command], fetching=True)
+	def getRecords(cls, user_id, internal_video=None, external_video=None, video=None):
+		command = "SELECT * FROM runs WHERE user_id = %s" % user_id
+
+		# Videos
+		if internal_video:
+			command += " AND (internal_video=true)"
+		elif external_video:
+			command += " AND (length(video_link)) > 0"
+		elif video:
+			command += " AND (internal_video=true or length(video_link) > 0)"
+		
+		command += ';'
+		return cls.execute_commands([command], fetching=True)
 
 
 	#id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media
 	@classmethod
-	def getRecordsHTMLTable(cls, user_id):
-		records = cls.getRecords(user_id)
-		html = '<div class="table-wrap">\n\t<table class="sortable" border="1">'
+	def getRecordsHTMLTable(cls, user_id, internal_video=None, external_video=None, video=None):
+		records = cls.getRecords(user_id, internal_video, external_video, video)
+		print (records)
+		##print ('RECORDS: %s' % len(records))
+		html = '<h2>Records: %s</h2>' % len(records)
+		html += '<div class="table-wrap">\n\t<table class="sortable" border="1">'
 		html += '\n\t\t<thead>'
 		html += '\n\t\t\t<tr>'
 		html += '\n\t\t\t\t<th><button>ID</button></th>'
@@ -136,9 +149,9 @@ class Run(Base):
 				html += '\n\t\t\t\t<td>Internal video</td>' 	# Internal video
 				html += '\n\t\t\t\t<td></td>' 			# No link
 			elif record[7]:
-				html += '\n\t\t\t\t<td>Internal video</td>'			# External video
+				html += '\n\t\t\t\t<td>External video</td>'			# External video
 				html += '\n\t\t\t\t<td><a href="%s">Link</a></td>' % record[7]	# Link
-			elif record[7]:
+			elif record[6]:
 				html += '\n\t\t\t\t<td>Image</td>'				# Image link
 				html += '\n\t\t\t\t<td><a href="%s">Link</a></td>' % record[6]	# Link
 			elif record[5]:
