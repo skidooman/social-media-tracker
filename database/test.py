@@ -12,8 +12,8 @@ def init():
 	Run.importFile(id, 'linkedin', '2022-10-01', 'LinkedIn_oct22.html.json')
 
 
-def getRecords(image=None, external_text=None, internal_video=None, external_video=None, simple=None):
-	print ("simple: %s" % simple)
+def getRecords(image=None, external_text=None, internal_video=None, external_video=None, simple=None,
+		original_date_before=None, original_date_after=None):
 	html = Data.getRecordsHTMLTable(1)
 	with open('table_data.html', 'w') as reportFile:
 		reportFile.write('<html><body>\n\n')
@@ -21,7 +21,8 @@ def getRecords(image=None, external_text=None, internal_video=None, external_vid
 		reportFile.write('\n\n</body></html>')
 
 	html = Run.getRecordsHTMLTable(1, image=image, external_text=external_text, internal_video=internal_video, 
-		external_video=external_video, simple=simple)
+		external_video=external_video, simple=simple, original_date_before=original_date_before, 
+		original_date_after=original_date_after)
 	with open('table.html', 'w') as reportFile:
 		reportFile.write('<html><body>\n\n')
 		reportFile.write(html)
@@ -40,6 +41,8 @@ if __name__ == "__main__":
 		internal_video = None
 		external_video = None
 		simple = None
+		original_date_before = None
+		original_date_after = None
 		for i in range(0, len(sys.argv)):
 			print (sys.argv[i])
 			if sys.argv[i] == 'image':
@@ -52,4 +55,9 @@ if __name__ == "__main__":
 				external_text = True
 			elif sys.argv[i] == 'simple':
 				simple = True
-		getRecords(image, external_text, internal_video, external_video, simple)
+			elif sys.argv[i].startswith('original_date_before='):
+				print ("TRIGGER")
+				original_date_before = sys.argv[i].split('=')[1]
+			elif sys.argv[i].startswith('original_date_after='):
+				original_date_after = sys.argv[i].split('=')[1]
+		getRecords(image, external_text, internal_video, external_video, simple, original_date_before, original_date_after)

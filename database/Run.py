@@ -100,7 +100,8 @@ class Run(Base):
 
 
 	@classmethod
-	def getRecords(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None, simple=None):
+	def getRecords(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None, simple=None,
+			original_date_before=None, original_date_after=None):
 		command = "SELECT * FROM runs WHERE user_id = %s" % user_id
 
 		def getExternals(target):
@@ -163,8 +164,14 @@ class Run(Base):
 						command  += " OR "
 					command += "(length(video_link)) > 0"
 				command += ") "
-			
-			command += ';'
+		
+		# Date constraints	
+		if original_date_before:
+			command += " AND publication_date < '%s'" % original_date_before
+		if original_date_after:
+			command += " AND publication_date > '%s'" % original_date_after
+
+		command += ';'
 
 		print (command)
 		return cls.execute_commands([command], fetching=True)
@@ -173,8 +180,9 @@ class Run(Base):
 	#id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media
 	@classmethod
 	def getRecordsHTMLTable(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None,
-			simple=None):
-		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple)
+		simple=None, original_date_before=None, original_date_after=None):
+		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple,
+			original_date_before, original_date_after)
 		print (records)
 		##print ('RECORDS: %s' % len(records))
 		html = '<h2>Records: %s</h2>' % len(records)
