@@ -20,13 +20,19 @@ def getRecords(image=None, external_text=None, internal_video=None, external_vid
 		reportFile.write(html)
 		reportFile.write('\n\n</body></html>')
 
-	html = Run.getRecordsHTMLTable(1, image=image, external_text=external_text, internal_video=internal_video, 
+	html, keywordHtml = Run.getRecordsHTMLTable(1, image=image, external_text=external_text, internal_video=internal_video, 
 		external_video=external_video, simple=simple, original_date_before=original_date_before, 
 		original_date_after=original_date_after)
 	with open('table.html', 'w') as reportFile:
 		reportFile.write('<html><body>\n\n')
 		reportFile.write(html)
 		reportFile.write('\n\n</body></html>')
+
+	#print (keywordHtml)
+	with open('hashes.html', 'w') as reportFile:
+		reportFile.write('<html><body>\n\n')
+		reportFile.write(keywordHtml)
+		reportFile.write('\n\n\</body></html>')
 
 
 if __name__ == "__main__":
@@ -61,3 +67,4 @@ if __name__ == "__main__":
 			elif sys.argv[i].startswith('original_date_after='):
 				original_date_after = sys.argv[i].split('=')[1]
 		getRecords(image, external_text, internal_video, external_video, simple, original_date_before, original_date_after)
+

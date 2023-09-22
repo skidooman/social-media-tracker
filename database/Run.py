@@ -4,6 +4,8 @@
 from Base import Base
 import json, datetime
 from Data import Data
+#from textblob import TextBlob
+import langid
 
 class Run(Base):
 	name_of_table = 'runs'
@@ -21,7 +23,8 @@ class Run(Base):
 			'image_link VARCHAR(2083) NOT NULL,'
 			'video_link VARCHAR(2083) NOT NULL,'
 			'internal_video BOOLEAN DEFAULT FALSE,'
-			'social_media VARCHAR(16) NOT NULL)')
+			'social_media VARCHAR(16) NOT NULL,'
+			'language VARCHAR(2))')
 		cls.execute_commands([command])
 
 	@classmethod
@@ -37,8 +40,14 @@ class Run(Base):
 			return entryExists
 			
 		else:
-			command = ("INSERT INTO runs (id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media)"
-				"VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')") % (id, user_id, date, date_approx, text.replace('\'', '"'), text_link, image_link, video_link, internal_video, social_media)
+			# What is the language?
+			#lang = TextBlob(text)
+			lang_code = langid.classify(text)[0]
+			print (lang_code)
+			if len(lang_code) > 2:
+				lang_code = lang_code[:1]
+			command = ("INSERT INTO runs (id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media, language)"
+				"VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')") % (id, user_id, date, date_approx, text.replace('\'', '"'), text_link, image_link, video_link, internal_video, social_media, lang_code)
 			return cls.execute_commands([command])
 
 	# This imports a properly formatted JSON file
@@ -117,7 +126,6 @@ class Run(Base):
 			return externals 
 
 		if simple:
-			print ("SIMPLE")
 			externals = getExternals(None)
 			if externals:
 				pos = 0
@@ -183,7 +191,7 @@ class Run(Base):
 		simple=None, original_date_before=None, original_date_after=None):
 		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple,
 			original_date_before, original_date_after)
-		print (records)
+
 		##print ('RECORDS: %s' % len(records))
 		html = '<h2>Records: %s</h2>' % len(records)
 		html += '<div class="table-wrap">\n\t<table class="sortable" border="1">'
@@ -195,6 +203,7 @@ class Run(Base):
 		html += '\n\t\t\t\t<th><button>Type</button></th>'
 		html += '\n\t\t\t\t<th><button>Link</button></th>'
 		html += '\n\t\t\t\t<th><button>Media</button></th>'
+		html += '\n\t\t\t\t<th><button>Language</button></th>'
 		html += '\n\t\t\t\t<th><button>Last data point</button></th>'
 		html += '\n\t\t\t\t<th><button>Views</button></th>'
 		html += '\n\t\t\t\t<th><button>Likes</button></th>'
@@ -229,7 +238,7 @@ class Run(Base):
 
 
 			html += '\n\t\t\t\t<td>%s</td>' % record[9] # Social media
-
+			html += '\n\t\t\t\t<td>%s</td>' % record[10] # Language
 			# Display last data point available
 			# run_id, user_id, date, views, likes, comments, reposts
 			points = Data.getRecords(user_id, record[0])
@@ -246,4 +255,67 @@ class Run(Base):
 		html += '\n\t\t</tbody>'
 		html += '\n\t</table>'
 		html += '\n</div>'
+		return html, cls.getKeywordHtml(user_id, records)
+
+	@classmethod
+	def getKeywordDict(cls, records):
+		capitalLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+		keywordDict = {}
+		for record in records:
+			text = record[4]
+			print (text)
+			hashes = []
+			words = text.replace('(', ' ').replace('.',' ').replace('?', ' ').replace('!', ' ').replace(':', ' ').replace('<', ' ').replace('\n', ' ').replace('>', ' ').replace('http', ' ').replace('#', ' #').split(' ')
+			for word in words:
+				if len(word) and word[0] == '#':
+					hash = word[1:]
+					if not hash[0] in capitalLetters:
+						for char in range(1, len(hash)):
+							if hash[char] in capitalLetters:
+								hash = hash.split(hash[char])[0]
+								break
+					hashes.append(hash.lower())
+			for hash in hashes:
+				if hash in keywordDict.keys():
+					keywordDict[hash].append(record)
+				else:
+					keywordDict[hash] = [record]
+		return keywordDict
+
+	@classmethod
+	def getKeywordHtml(cls, user_id, records):
+		records = cls.getKeywordDict(records)
+		##print ('RECORDS: %s' % len(records))
+		html = '<h2>Hashes: %s</h2>' % len(records.keys())
+		html += '<div class="table-wrap">\n\t<table class="sortable" border="1">'
+		html += '\n\t\t<thead>'
+		html += '\n\t\t\t<tr>'
+		html += '\n\t\t\t\t<th><button>Hash</button></th>'
+		html += '\n\t\t\t\t<th><button># entries</button></th>'
+		html += '\n\t\t\t\t<th><button># displays</button></th>'
+		html += '\n\t\t\t\t<th><button>Displays per entry</button></th>'
+		html += '\n\t\t\t\t<th><button>#Likes</button></th>'
+		html += '\n\t\t\t\t<th><button>Likes per entry</button></th>'
+		html += '\n\t\t\t</tr>'
+		html += '\n\t\t</thead>'
+
+		html += '\n\t\t<tbody>'
+		for hash in records.keys():
+			html += '\n\t\t\t<tr>'
+			html += '\n\t\t\t\t<td>%s</td>' % hash
+			html += '\n\t\t\t\t<td>%s</td>' % len(records[hash])
+			entries = 0
+			likes = 0
+			for entry in records[hash]:
+				points = Data.getRecords(user_id, entry[0])
+				entries = points[0][3]
+				likes = points[0][5]
+			html += '\n\t\t\t<td>%s</td>' % entries
+			html += '\n\t\t\t<td>%s</td>' % (entries/ len(records[hash]))
+			html += '\n\t\t\t<td>%s</td>' % likes
+			html += '\n\t\t\t<td>%s</td>' % (likes / len(records[hash]))
+			html += '\n\t\t\t</tr>'
+		html += '\n\t\t</tbody>'
+		html += '\n\t</table>'
+
 		return html
