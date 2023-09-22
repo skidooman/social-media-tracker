@@ -24,7 +24,7 @@ def getRecords(image=None, external_text=None, internal_video=None, external_vid
 		external_video=external_video, simple=simple, original_date_before=original_date_before, 
 		original_date_after=original_date_after)
 	with open('table.html', 'w') as reportFile:
-		reportFile.write('<html><body>\n\n')
+		reportFile.write('<html><head><link rel="stylesheet" href="sortable-table.css"><script src="sortable-table.js"></script></head><body>\n\n')
 		reportFile.write(html)
 		reportFile.write('\n\n</body></html>')
 
