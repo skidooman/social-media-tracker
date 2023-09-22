@@ -205,10 +205,10 @@ class Run(Base):
 		html += '\n\t\t\t\t<th><button>Media</button></th>'
 		html += '\n\t\t\t\t<th><button>Language</button></th>'
 		html += '\n\t\t\t\t<th><button>Last data point</button></th>'
-		html += '\n\t\t\t\t<th><button>Views</button></th>'
-		html += '\n\t\t\t\t<th><button>Likes</button></th>'
-		html += '\n\t\t\t\t<th><button>Comments</button></th>'
-		html += '\n\t\t\t\t<th><button>Reposts</button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>Views</button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>Likes</button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>Comments</button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>Reposts</button></th>'
 		html += '\n\t\t\t</tr>'
 		html += '\n\t\t</thead>'
 
@@ -216,7 +216,7 @@ class Run(Base):
 		
 		for record in records:
 			html += '\n\t\t\t<tr>'
-			html += '\n\t\t\t\t<td>%s</td>' % record[0] # ID
+			html += '\n\t\t\t\t<td class="num">%s</td>' % record[0] # ID
 			html += '\n\t\t\t\t<td>%s</td>' % record[2] # Publication date
 			html += '\n\t\t\t\t<td style="max-width: 200px; overflow:hidden; text-overflow: hidden;" width="200"><div style="max-width:200px; white-space:nowrap; overflow: hidden; text-overflow: hidden;">%s</div></td>' % record[4] # Text
 			# Type
@@ -238,16 +238,16 @@ class Run(Base):
 
 
 			html += '\n\t\t\t\t<td>%s</td>' % record[9] # Social media
-			html += '\n\t\t\t\t<td>%s</td>' % record[10] # Language
+			html += '\n\t\t\t\t<td class="num">%s</td>' % record[10] # Language
 			# Display last data point available
 			# run_id, user_id, date, views, likes, comments, reposts
 			points = Data.getRecords(user_id, record[0])
 			currentPoint = points[len(points)-1]
 			html += '\n\t\t\t\t<td>%s</td>' % currentPoint[2]
-			html += '\n\t\t\t\t<td>%s</td>' % currentPoint[3]
-			html += '\n\t\t\t\t<td>%s</td>' % currentPoint[4]
-			html += '\n\t\t\t\t<td>%s</td>' % currentPoint[5]
-			html += '\n\t\t\t\t<td>%s</td>' % currentPoint[6]
+			html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[3]
+			html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[4]
+			html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[5]
+			html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[6]
 
 			html += '\n\t\t\t</tr>'
 		
@@ -291,11 +291,11 @@ class Run(Base):
 		html += '\n\t\t<thead>'
 		html += '\n\t\t\t<tr>'
 		html += '\n\t\t\t\t<th><button>Hash</button></th>'
-		html += '\n\t\t\t\t<th><button># entries</button></th>'
-		html += '\n\t\t\t\t<th><button># displays</button></th>'
-		html += '\n\t\t\t\t<th><button>Displays per entry</button></th>'
-		html += '\n\t\t\t\t<th><button>#Likes</button></th>'
-		html += '\n\t\t\t\t<th><button>Likes per entry</button></th>'
+		html += '\n\t\t\t\t<th class="num"><button># entries</button></th>'
+		html += '\n\t\t\t\t<th class="num"><button># displays</button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>Displays per entry</button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>#Likes</button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>Likes per entry</button></th>'
 		html += '\n\t\t\t</tr>'
 		html += '\n\t\t</thead>'
 
@@ -303,17 +303,17 @@ class Run(Base):
 		for hash in records.keys():
 			html += '\n\t\t\t<tr>'
 			html += '\n\t\t\t\t<td>%s</td>' % hash
-			html += '\n\t\t\t\t<td>%s</td>' % len(records[hash])
+			html += '\n\t\t\t\t<td class="num">%s</td>' % len(records[hash])
 			entries = 0
 			likes = 0
 			for entry in records[hash]:
 				points = Data.getRecords(user_id, entry[0])
 				entries = points[0][3]
 				likes = points[0][5]
-			html += '\n\t\t\t<td>%s</td>' % entries
-			html += '\n\t\t\t<td>%s</td>' % (entries/ len(records[hash]))
-			html += '\n\t\t\t<td>%s</td>' % likes
-			html += '\n\t\t\t<td>%s</td>' % (likes / len(records[hash]))
+			html += '\n\t\t\t<td class="num">%s</td>' % entries
+			html += '\n\t\t\t<td class="num">%s</td>' % (entries/ len(records[hash]))
+			html += '\n\t\t\t<td class="num">%s</td>' % likes
+			html += '\n\t\t\t<td class="num">%s</td>' % (likes / len(records[hash]))
 			html += '\n\t\t\t</tr>'
 		html += '\n\t\t</tbody>'
 		html += '\n\t</table>'
