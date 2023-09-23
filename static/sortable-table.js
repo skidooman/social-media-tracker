@@ -165,3 +165,11 @@ window.addEventListener('load', function () {
     new SortableTable(sortableTables[i]);
   }
 });
+
+
+function initialize_sortable(){
+  var sortableTables = document.querySelectorAll('table.sortable');
+  for (var i = 0; i < sortableTables.length; i++) {
+    new SortableTable(sortableTables[i]);
+  }
+}

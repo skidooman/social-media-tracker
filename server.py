@@ -30,47 +30,73 @@ def filters(url):
 	html += '</table>'
 	return html
 
-
-def menu():
-	html = '<table border="0" width="100%" style="background-color: #000000">'
-	html += '<tr>'
-	html += '\n  <td width="25%"><h2 style="color: white;">Social Media Tracker</h2></td>'
-	html += '\n  <td><button><h3 style="color:white; background: transparent; border: none;">Runs</h3></button></td>'
-	html += '\n  <td><button><h3 style="color:white; background: transparent;">Hashes</h3></button></td>'
-	html += '\n  <td width="75%">&nbsp;</td>'
-	html += '\n</tr>'
-	html += '</table>'
-	return html
-
-@app.route('/')
-def index():
-	html = '<html>'
-	html += '\n<head>\n  <link rel="stylesheet" href="static/sortable-table.css">\n  <script src="static/sortable-table.js"></script>'
-	html += '\n  <script src="static/filter.js"></script>'
-	html += '\n  <style>button { padding: 4px; margin: 1px; font-size: 100%; font-weight: bold; color: white; background: transparent; border: none; width: 100%; text-align: left; outline: none; cursor: pointer;}</style>'
-
-	html += '\n</head>'
-	html += '\n\n<body onload="filter(\'/runs\')">\n\n'
-	html += menu()
-	html += filters('/runs')
-	html += '\n<main>'
-	html += '\n<div id="main"></div>'
-	html += '\n</main>'
-	html += '</body>'
-	html += '</html>'
-	
-	return html
-
-@app.route('/runs', methods=['POST'])
-def runs():
+@app.route('/hashes', methods=['POST'])
+def hashes():
 	data = request.json
-	print (dir(Run.Run))
 	#{'image': False, 'external_text': False, 'internal_video': False, 'external_video': False, 'simple': False, 'original_date_before': False, 'original_date_after': False}
 	answer = Run.Run.getRecordsHTMLTable(1, image=data['image'], external_text=data['external_text'], 
 		internal_video=data['internal_video'], external_video=data['external_video'], 
 		simple=data['simple'], original_date_before=data['original_date_before'],
 		original_date_after=data['original_date_after'])
-	return answer[0].encode()
+	return answer[1].encode() # The second report is the hashes
+
+@app.route('/hash')
+def hash():
+	html = head()
+	html += '\n\n<body onload="filter(\'/hashes\')">\n\n'
+	html += menu()
+	html += filters('/hashes')
+	html += main()
+	return html
+
+
+def head():
+	html = '<html>'
+	html += '\n<head>\n  <link rel="stylesheet" href="static/sortable-table.css">\n  <script src="static/sortable-table.js"></script>'
+	html += '\n  <script src="static/filter.js"></script>'
+	html += '\n  <style>button { padding: 4px; margin: 1px; font-size: 100%; font-weight: bold; color: white; background: transparent; border: none; width: 100%; text-align: left; outline: none; cursor: pointer;}</style>'
+	html += '\n</head>'
+	return html
+
+
+@app.route('/')
+def index():
+	html = head()
+	html += '\n\n<body onload="filter(\'/runs\')">\n\n'
+	html += menu()
+	html += filters('/runs')
+	html += main()
+	return html
+
+def main():
+	html = '\n<main>'
+	html += '\n<div id="main"></div>'
+	html += '\n</main>'
+	html += '</body>'
+	html += '</html>'
+	return html
+
+def menu():
+	html = '<table border="0" width="100%" style="background-color: #000000">'
+	html += '<tr>'
+	html += '\n  <td width="25%"><h2 style="color: white;">Social Media Tracker</h2></td>'
+	html += '\n  <td><button onclick="window.location.href=\'/\';"><h3 style="color:white; background: transparent; border: none;">Runs</h3></button></td>'
+	html += '\n  <td><button onclick="window.location.href=\'/hash\';"><h3 style="color:white; background: transparent;">Hashes</h3></button></td>'
+	html += '\n  <td width="75%">&nbsp;</td>'
+	html += '\n</tr>'
+	html += '</table>'
+	return html
+
+
+@app.route('/runs', methods=['POST'])
+def runs():
+	data = request.json
+	#{'image': False, 'external_text': False, 'internal_video': False, 'external_video': False, 'simple': False, 'original_date_before': False, 'original_date_after': False}
+	answer = Run.Run.getRecordsHTMLTable(1, image=data['image'], external_text=data['external_text'], 
+		internal_video=data['internal_video'], external_video=data['external_video'], 
+		simple=data['simple'], original_date_before=data['original_date_before'],
+		original_date_after=data['original_date_after'])
+	return answer[0].encode() # The first report is the runs
 	
 # main driver function
 if __name__ == '__main__':

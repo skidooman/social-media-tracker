@@ -345,9 +345,9 @@ class Run(Base):
 		keywordDict = {}
 		for record in records:
 			text = record[4]
-			print (text)
 			hashes = []
-			words = text.replace('(', ' ').replace('.',' ').replace('?', ' ').replace('!', ' ').replace(':', ' ').replace('<', ' ').replace('\n', ' ').replace('>', ' ').replace('http', ' ').replace('#', ' #').split(' ')
+			text = text.replace('＃', ' #')
+			words = text.replace(',', ' ').replace('.',' ').replace('?', ' ').replace('!', ' ').replace(':', ' ').replace('<', ' ').replace('\n', ' ').replace('>', ' ').replace('http', ' ').replace(',',' ').replace('#', ' #').split(' ')
 			for word in words:
 				if len(word) and word[0] == '#':
 					hash = word[1:]
@@ -356,7 +356,13 @@ class Run(Base):
 							if hash[char] in capitalLetters:
 								hash = hash.split(hash[char])[0]
 								break
-					hashes.append(hash.lower())
+					if hash[0].isascii() and not hash[-1].isascii():
+						for i in range(len(hash)-1, 0, -1):
+							if not hash[i].isascii() and hash[i] not in ['é','è','ù','ì','ò','ù','à','â','ê','î','ô','û','â','ê','î','ô','û','ȩ','ï','ü','ë','ä','ö','è']:
+								hash = hash[:-1]
+							else:
+								break
+					hashes.append(hash.replace('(', '').replace('、', '').replace(')','').lower())
 			for hash in hashes:
 				if hash in keywordDict.keys():
 					keywordDict[hash].append(record)
@@ -393,9 +399,9 @@ class Run(Base):
 				entries = points[0][3]
 				likes = points[0][5]
 			html += '\n\t\t\t<td class="num">%s</td>' % entries
-			html += '\n\t\t\t<td class="num">%s</td>' % (entries/ len(records[hash]))
+			html += '\n\t\t\t<td class="num">%.2f</td>' % (entries/ len(records[hash]))
 			html += '\n\t\t\t<td class="num">%s</td>' % likes
-			html += '\n\t\t\t<td class="num">%s</td>' % (likes / len(records[hash]))
+			html += '\n\t\t\t<td class="num">%.2f</td>' % (likes / len(records[hash]))
 			html += '\n\t\t\t</tr>'
 		html += '\n\t\t</tbody>'
 		html += '\n\t</table>'

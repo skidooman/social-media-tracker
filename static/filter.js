@@ -41,6 +41,7 @@ function filter(url)
 	  .then(function(data)
 	  {console.log(data);
 	   document.getElementById('main').innerHTML =data;
+	   initialize_sortable();
 	   
 	}).catch(error => console.error('Error:', error)); 
 	//alert(answer);
