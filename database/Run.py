@@ -194,6 +194,21 @@ class Run(Base):
 			if myString.startswith('<br><br> '):
 				return myString[4:]
 
+		def getTotals(user_id, records):
+			views = 0
+			likes = 0
+			comments = 0
+			reposts = 0
+			for record in records:
+				points = Data.getRecords(user_id, record[0])
+				currentPoint = points[len(points)-1]
+				views += currentPoint[3]
+				likes += currentPoint[4]
+				comments += currentPoint[5]
+				reposts += currentPoint[6]
+			return views, likes, comments, reposts
+				
+
 		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple,
 			original_date_before, original_date_after)
 
@@ -206,7 +221,6 @@ class Run(Base):
 		html += '\n\t\t\t\t<th><button>Date<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Text<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Type<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>Link<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Media<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Lang<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Last data<span aria=hidden="true"></span></button></th>'
@@ -215,31 +229,48 @@ class Run(Base):
 		html += '\n\t\t\t\t<th class="num"><button>Comment<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Repost<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t</tr>'
+
+		# Totals
+		views, likes, comments, reposts = getTotals(user_id, records)
+		html += '\n\t\t\t<tr>'
+		html += '\n\t\t\t\t<th style="background-color: white; color: black;">Records: %s</th>' % len(records)
+		html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+		html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+		html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+		html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+		html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+		html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+		html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % views
+		html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % likes
+		html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % comments
+		html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % reposts
+
+		html += '\n\t\t\t</tr>'
+
 		html += '\n\t\t</thead>'
 
 		html += '\n\t\t<tbody>'
 		
 		for record in records:
 			html += '\n\t\t\t<tr>'
-			html += '\n\t\t\t\t<td class="num">%s</td>' % record[0] # ID
+			if record[9] == 'linkedin':
+				html += '\n\t\t\t\t<td class="num"><a href="https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:%s" target="_top">%s</a></td>' % (record[0], record[0]) # ID
+			else:
+				html += '\n\t\t\t\t<td class="num">%s</td>' % record[0] # ID
+
 			html += '\n\t\t\t\t<td>%s</td>' % record[2] # Publication date
-			html += '\n\t\t\t\t<td style="max-width: 200px; overflow:hidden; text-overflow: hidden;" width="200"><div style="max-width:200px; white-space:nowrap; overflow: hidden; text-overflow: hidden;">%s</div></td>' % cleanText(record[4]) # Text
+			html += '\n\t\t\t\t<td style="max-width: 200px; overflow:hidden; text-overflow: hidden;" width="200"><div class="expandable" style="max-width:200px; white-space:nowrap; overflow: hidden; text-overflow: ellipsis;">%s</div></td>' % cleanText(record[4]) # Text
 			# Type
 			if record[8]:
 				html += '\n\t\t\t\t<td>Internal video</td>' 	# Internal video
-				html += '\n\t\t\t\t<td></td>' 			# No link
 			elif record[7]:
-				html += '\n\t\t\t\t<td>External video</td>'			# External video
-				html += '\n\t\t\t\t<td><a href="%s">Link</a></td>' % record[7]	# Link
+				html += '\n\t\t\t\t<td><a href="%s" target="_top">External video</a></td>' % record[7] # External video
 			elif record[6]:
-				html += '\n\t\t\t\t<td>Image</td>'				# Image link
-				html += '\n\t\t\t\t<td><a href="%s">Link</a></td>' % record[6]	# Link
+				html += '\n\t\t\t\t<td><a href="%s" target="_top">Image</a></td>' % record[6]	# Image link
 			elif record[5]:
-				html += '\n\t\t\t\t<td>Article</td>'				# External text
-				html += '\n\t\t\t\t<td><a href="%s">Link</a></td>' % record[5]	# Link
+				html += '\n\t\t\t\t<td><a href="%s" taget="_top">Article</a></td>' % record[5] # External text
 			else:
 				html += '\n\t\t\t\t<td>Simple entry</td>'			# Simple
-				html += '\n\t\t\t\t<td></td>'					# No link
 
 
 			html += '\n\t\t\t\t<td>%s</td>' % record[9] # Social media
@@ -259,6 +290,18 @@ class Run(Base):
 		html += '\n\t\t</tbody>'
 		html += '\n\t</table>'
 		html += '\n</div>'
+
+		html += "<script>"
+		html += "\n  let expandables = document.getElementsByClassName('expandable');"
+		html += "\n  for (let i = 0; i < expandables.length; i++) {"
+		html += "\n    expandables[i].addEventListener('click', () => {"
+		#html += "\n    alert('clicked');"
+		html += "\n     if (expandables[i].style.overflow == 'hidden') {expandables[i].style.overflow ='visible'; expandables[i].style.whiteSpace='normal';}"
+		html += "\n     else {expandables[i].style.overflow = 'hidden'; expandables[i].style.whiteSpace='nowrap';}"
+		html += "\n  });}"
+		html += "\n</script>"
+
+
 		return html, cls.getKeywordHtml(user_id, records)
 
 	@classmethod
