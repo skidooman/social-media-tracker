@@ -1,5 +1,7 @@
 function filter(url)
 {
+        document.getElementById('main').innerHTML='<h3>Retrieving data, please stand by...</h3>';
+
 	var external_text= false;
         var internal_video = false;
         var external_video = false;

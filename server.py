@@ -50,7 +50,7 @@ def index():
 	html += '\n  <style>button { padding: 4px; margin: 1px; font-size: 100%; font-weight: bold; color: white; background: transparent; border: none; width: 100%; text-align: left; outline: none; cursor: pointer;}</style>'
 
 	html += '\n</head>'
-	html += '\n\n<body>\n\n'
+	html += '\n\n<body onload="filter(\'/runs\')">\n\n'
 	html += menu()
 	html += filters('/runs')
 	html += '\n<main>'
