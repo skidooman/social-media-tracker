@@ -194,21 +194,21 @@ class Run(Base):
 
 		##print ('RECORDS: %s' % len(records))
 		html = '<h2>Records: %s</h2>' % len(records)
-		html += '<div class="table-wrap">\n\t<table class="sortable" border="1">'
+		html += '<div class="table-wrap">\n\t<table class="sortable">'
 		html += '\n\t\t<thead>'
 		html += '\n\t\t\t<tr>'
-		html += '\n\t\t\t\t<th><button>ID</button></th>'
-		html += '\n\t\t\t\t<th><button>Date</button></th>'
-		html += '\n\t\t\t\t<th><button>Text</button></th>'
-		html += '\n\t\t\t\t<th><button>Type</button></th>'
-		html += '\n\t\t\t\t<th><button>Link</button></th>'
-		html += '\n\t\t\t\t<th><button>Media</button></th>'
-		html += '\n\t\t\t\t<th><button>Language</button></th>'
-		html += '\n\t\t\t\t<th><button>Last data point</button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>Views</button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>Likes</button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>Comments</button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>Reposts</button></th>'
+		html += '\n\t\t\t\t<th><button>ID<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th><button>Date<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th><button>Text<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th><button>Type<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th><button>Link<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th><button>Media<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th><button>Lang<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th><button>Last data<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>Views<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>Likes<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>Comment<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>Repost<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t</tr>'
 		html += '\n\t\t</thead>'
 
@@ -251,7 +251,6 @@ class Run(Base):
 
 			html += '\n\t\t\t</tr>'
 		
-		html += '\n\t\t\t</tr>'
 		html += '\n\t\t</tbody>'
 		html += '\n\t</table>'
 		html += '\n</div>'
@@ -287,15 +286,15 @@ class Run(Base):
 		records = cls.getKeywordDict(records)
 		##print ('RECORDS: %s' % len(records))
 		html = '<h2>Hashes: %s</h2>' % len(records.keys())
-		html += '<div class="table-wrap">\n\t<table class="sortable" border="1">'
+		html += '<div class="table-wrap">\n\t<table class="sortable">'
 		html += '\n\t\t<thead>'
 		html += '\n\t\t\t<tr>'
-		html += '\n\t\t\t\t<th><button>Hash</button></th>'
-		html += '\n\t\t\t\t<th class="num"><button># entries</button></th>'
-		html += '\n\t\t\t\t<th class="num"><button># displays</button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>Displays per entry</button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>#Likes</button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>Likes per entry</button></th>'
+		html += '\n\t\t\t\t<th><button>Hash<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th class="num"><button># entries<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th class="num"><button># displays<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>Displays per entry<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>#Likes<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>Likes per entry<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t</tr>'
 		html += '\n\t\t</thead>'
 

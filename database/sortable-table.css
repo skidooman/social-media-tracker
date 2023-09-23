@@ -12,6 +12,8 @@ table.sortable th {
 table.sortable th {
   font-weight: bold;
   border-bottom: thin solid #888;
+  background-color: #000000;
+  color: #FFFFFF;
   position: relative;
 }
 
@@ -24,14 +26,15 @@ table.sortable th:nth-child(5) {
 }
 
 table.sortable th button {
-  position: absolute;
+  /*position: absolute;*/
   padding: 4px;
   margin: 1px;
   font-size: 100%;
   font-weight: bold;
+  color: white;
   background: transparent;
   border: none;
-  display: inline;
+  /*display: inline;*/
   right: 0;
   left: 0;
   top: 0;
@@ -43,7 +46,7 @@ table.sortable th button {
 }
 
 table.sortable th button span {
-  position: absolute;
+  /*position: absolute;*/
   right: 4px;
 }
 
