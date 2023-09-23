@@ -238,7 +238,15 @@ class Run(Base):
 			original_date_before, original_date_after)
 
 		##print ('RECORDS: %s' % len(records))
-		html = '<h2>Records: %s</h2>' % len(records)
+		#html = '<h2>Records: %s</h2>' % len(records)
+		html = "<script>"
+		html += "\nfunction toggle (id){"
+		html += "\n  let expandable = document.getElementById(id);"
+		html += "\n  if (expandable.style.overflow == 'hidden') {expandable.style.overflow ='visible'; expandable.style.whiteSpace='normal';}"
+		html += "\n  else {expandable.style.overflow = 'hidden'; expandable.style.whiteSpace='nowrap';}"
+		html += "\n}"
+		html += "\n</script>"
+
 		html += '<div class="table-wrap">\n\t<table class="sortable">'
 		html += '\n\t\t<thead>'
 		html += '\n\t\t\t<tr>'
@@ -276,7 +284,9 @@ class Run(Base):
 
 		html += '\n\t\t<tbody>'
 		
+		recordNum = 0
 		for record in records:
+			recordNum += 1
 			html += '\n\t\t\t<tr>'
 			if record[9] == 'linkedin':
 				html += '\n\t\t\t\t<td class="num"><a href="https://www.linkedin.com/embed/feed/update/%s" target="_top">%s</a></td>' % (record[0], record[0]) # ID
@@ -284,7 +294,7 @@ class Run(Base):
 				html += '\n\t\t\t\t<td class="num">%s</td>' % record[0] # ID
 
 			html += '\n\t\t\t\t<td>%s</td>' % record[2] # Publication date
-			html += '\n\t\t\t\t<td style="max-width: 200px; overflow:hidden; text-overflow: hidden;" width="200"><div class="expandable" style="max-width:200px; white-space:nowrap; overflow: hidden; text-overflow: ellipsis;">%s</div></td>' % cleanText(record[4]) # Text
+			html += '\n\t\t\t\t<td style="max-width: 200px; overflow:hidden; text-overflow: hidden;" width="200"><div class="expandable" id=\'exp%s\' onclick="toggle(\'exp%s\');" style="max-width:200px; white-space:nowrap; overflow: hidden; text-overflow: ellipsis;">%s</div></td>' % (recordNum, recordNum, cleanText(record[4]))  # Text
 			# Type
 			if record[8]:
 				html += '\n\t\t\t\t<td>Internal video</td>' 	# Internal video
@@ -316,7 +326,7 @@ class Run(Base):
 		html += '\n\t</table>'
 		html += '\n</div>'
 
-		html += "<script>"
+		'''html += "<script>"
 		html += "\n  let expandables = document.getElementsByClassName('expandable');"
 		html += "\n  for (let i = 0; i < expandables.length; i++) {"
 		html += "\n    expandables[i].addEventListener('click', () => {"
@@ -324,7 +334,7 @@ class Run(Base):
 		html += "\n     if (expandables[i].style.overflow == 'hidden') {expandables[i].style.overflow ='visible'; expandables[i].style.whiteSpace='normal';}"
 		html += "\n     else {expandables[i].style.overflow = 'hidden'; expandables[i].style.whiteSpace='nowrap';}"
 		html += "\n  });}"
-		html += "\n</script>"
+		html += "\n</script>"'''
 
 
 		return html, cls.getKeywordHtml(user_id, records)
