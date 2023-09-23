@@ -189,6 +189,11 @@ class Run(Base):
 	@classmethod
 	def getRecordsHTMLTable(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None,
 		simple=None, original_date_before=None, original_date_after=None):
+
+		def cleanText(myString):
+			if myString.startswith('<br><br> '):
+				return myString[4:]
+
 		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple,
 			original_date_before, original_date_after)
 
@@ -218,7 +223,7 @@ class Run(Base):
 			html += '\n\t\t\t<tr>'
 			html += '\n\t\t\t\t<td class="num">%s</td>' % record[0] # ID
 			html += '\n\t\t\t\t<td>%s</td>' % record[2] # Publication date
-			html += '\n\t\t\t\t<td style="max-width: 200px; overflow:hidden; text-overflow: hidden;" width="200"><div style="max-width:200px; white-space:nowrap; overflow: hidden; text-overflow: hidden;">%s</div></td>' % record[4] # Text
+			html += '\n\t\t\t\t<td style="max-width: 200px; overflow:hidden; text-overflow: hidden;" width="200"><div style="max-width:200px; white-space:nowrap; overflow: hidden; text-overflow: hidden;">%s</div></td>' % cleanText(record[4]) # Text
 			# Type
 			if record[8]:
 				html += '\n\t\t\t\t<td>Internal video</td>' 	# Internal video

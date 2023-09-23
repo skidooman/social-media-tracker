@@ -86,8 +86,8 @@ table.sortable tbody tr:nth-child(odd) {
 table.sortable th button:focus,
 table.sortable th button:hover {
   padding: 2px;
-  border: 2px solid currentcolor;
-  background-color: #e5f4ff;
+  /*border: 2px solid currentcolor;*/
+  /*background-color: #e5f4ff;*/
 }
 
 table.sortable th button:focus span,
