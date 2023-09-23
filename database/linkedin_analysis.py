@@ -18,13 +18,20 @@ def buildDatabase(filename):
 
 	    # Find the Impressions
 	    impressions = entry.find('span', {"class": "ca-entry-point__num-views"})
+	    if impressions is None:
+	       print ('skipped')
+	       continue
 	    #print(impressions.text.replace('\n','').replace(',','').replace('  ', ''))
 	    #print(impressions.text.replace('\n', '').replace(',','').split(' '))
 	    impressions_num = None
 	    impressions_num = int(impressions.text.replace('\n','').replace(',','').replace('  ','').split(' ')[0])
 	    # Find the date as a string from the date of saving
-	    date = str(entry.find('span', {'aria-hidden': 'true'}).text).split(' ')[0]
-
+	    date = None
+	    possibleDates = entry.find_all('span', {'aria-hidden': 'true'})
+	    for possibleDate in possibleDates:
+	       if possibleDate.text[0] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
+	          date = str(possibleDate.text.split(' ')[0])
+	          break
 	    # Find the text
 	    articleText = entry.find('span', {"class": "break-words"}).text
 	    words = articleText.split()

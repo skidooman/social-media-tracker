@@ -1,7 +1,20 @@
 from User import User
 from Run import Run
 from Data import Data
-import sys
+import sys, os, time
+from linkedin_analysis import buildDatabase as LI_Database
+from linkedin_analysis import saveJSON as LI_save_json
+
+def add_linkedIn(filename):
+	database = LI_Database(filename)
+	LI_save_json(database, '%s.json' % filename)
+	if filename.endswith('march23.html'):
+		Run.importFile(1, 'linkedin', '2023-03-31', "%s.json" % filename)
+	else:
+		myTime = os.path.getmtime(filename)
+		timestamp = time.strftime("%Y-%m-%d", time.strptime(time.ctime(myTime)))
+		print ("TIMESTAMP: %s" % timestamp)
+		Run.importFile(1, 'linkedin', timestamp, "%s.json" % filename) 
 
 def init():
 	User.create()
@@ -39,6 +52,8 @@ if __name__ == "__main__":
 	if sys.argv[1] == 'init':
 		init()
 		getRecords()
+	elif sys.argv[1] == 'add_LI':
+		add_linkedIn(sys.argv[2])
 	elif sys.argv[1] == 'list':
 		getRecords()
 	else:

@@ -74,12 +74,37 @@ class Run(Base):
 					elif (entry['date'].endswith('mo')):
 						month = int(entry['date'][:-2])
 						if (month < date.month):
-							date = date.replace(month= date.month-month)
+							diff = date.month-month
+							if diff == 2 and date.day > 28:
+								date = date.replace(day=28)
+							elif diff in [4,6,9,11] and date.day > 30:
+								date = date.replace(day=30)
+							date = date.replace(month=diff)
 						else:
 							month = date.month + (-1*(date.month-month))
+							if month == 2 and date.day > 28:
+								date = date.replace(day=28)
+							elif month in [4,6,9,11] and date.day > 30:
+								date = date.replace(day=30)
 							date = date.replace(year=date.year-1, month=month)
+					elif (entry['date'].endswith('w')):
+						week = int(entry['date'][:-1])
+						dayDiff = week * 7
+						if dayDiff > date.day:
+							if date.month == 1:
+								date = date.replace(month=12)
+							if date.month in [4,6,9,11]:
+								date = date.replace(day=30 - dayDiff + date.day)
+							elif date.month == 2:
+								date = date.replace(day=28 - dayDiff + date.day)
+							else:
+								date = date.replace(day=31-dayDiff+date.day)
+						else:
+							date = date.replace(date.day-dayDiff)
+
 					elif (entry['date'].endswith('d')):
 						day = int(entry['date'][:-1])
+						print ('DATE: %s - %s' % (entry['date'], date)) 
 						if (day < date.day):
 							date = date.replace(day=date.day-day)
 						else:
@@ -254,7 +279,7 @@ class Run(Base):
 		for record in records:
 			html += '\n\t\t\t<tr>'
 			if record[9] == 'linkedin':
-				html += '\n\t\t\t\t<td class="num"><a href="https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:%s" target="_top">%s</a></td>' % (record[0], record[0]) # ID
+				html += '\n\t\t\t\t<td class="num"><a href="https://www.linkedin.com/embed/feed/update/%s" target="_top">%s</a></td>' % (record[0], record[0]) # ID
 			else:
 				html += '\n\t\t\t\t<td class="num">%s</td>' % record[0] # ID
 
