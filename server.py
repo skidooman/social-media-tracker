@@ -110,7 +110,6 @@ def hash():
 	html += main()
 	return html
 
-
 def head():
 	html = '<html>'
 	html += '\n<head>\n  <link rel="stylesheet" href="static/sortable-table.css">\n  <script src="static/sortable-table.js"></script>'
@@ -118,6 +117,20 @@ def head():
 	html += '\n  <style>button { padding: 4px; margin: 1px; font-size: 100%; font-weight: bold; color: white; background: transparent; border: none; width: 100%; text-align: left; outline: none; cursor: pointer;}</style>'
 	html += '\n</head>'
 	return html
+
+@app.route('/import')
+def importFunction():
+	html = head()
+	html += '\n\n<body>\n\n'
+	html += menu()
+	html += '\n<h2>Import data points</h2>'
+	html += '\n<h4><table border="0">'
+	html += '\n  <tr><td>LinkedIn</td><td><input file type="file" id="linkedin"></td><td><button id="LI" style="color:black;">Upload</button></td></tr>'
+	html += '\n  <tr><td>YouTube</td><td><input file type="file" id="youtube"></td><td><button id="YT" style="color:black;">Upload</button></td></tr>'
+	html += '\n</table></h4>'
+	html += "\n</body></html>"
+	return html
+
 
 
 @app.route('/')
@@ -143,6 +156,7 @@ def menu():
 	html += '\n  <td width="25%"><h2 style="color: white;">Social Media Tracker</h2></td>'
 	html += '\n  <td><button onclick="window.location.href=\'/\';"><h3 style="color:white; background: transparent; border: none;">Runs</h3></button></td>'
 	html += '\n  <td><button onclick="window.location.href=\'/hash\';"><h3 style="color:white; background: transparent;">Hashes</h3></button></td>'
+	html += '\n  <td><button onclick="window.location.href=\'/import\';"><h3 style="color:white; background: transparent;">Import</h3></button></td>'
 	html += '\n  <td width="75%">&nbsp;</td>'
 	html += '\n</tr>'
 	html += '</table>'
