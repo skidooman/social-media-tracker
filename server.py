@@ -9,6 +9,20 @@ templates_dir = 'templates'
 static_dir = 'static'
 app = Flask(__name__, template_folder=templates_dir, static_folder=static_dir)
 
+@app.route('/edit/<user_id>/<entry_id>')
+def edit(user_id, entry_id):
+	entry = Run.Run.getRecord(user_id, entry_id)
+	html = head()
+	html += '\n\n<body>\n\n'
+	html += menu()
+	html += "\n<table border='0'>"
+	html += '\n   <tr><td>ID</td><td>%s</td></tr>' % entry[0]
+	html += '\n   <tr><td>Description</td><td>%s</td></tr>' % entry[2]
+	html += '\n   <tr><td>Language</td><td>%s</td></tr>' % entry[10]
+	html += "\n</table>"
+	html += '\n</body></html>'
+	return html
+
 
 def filters(url):
 	html = '<table border="0" width="100%">'
@@ -30,7 +44,6 @@ def filters(url):
 	html += '\n    <input type="checkbox" id="youtube" name="youtube" value="youtube"><label for="youtube">YouTube<br>'	
 	html += '\n  </h4></td>'
 	languages = Run.Run.getLanguages()
-	print ('languages: %s' % languages)
 	maxRows = 5
 	colNum = math.ceil(len(languages)/maxRows)
 	cols = []
@@ -42,13 +55,12 @@ def filters(url):
 		front_index += maxRows
 		if front_index > len(languages):
 			front_index = len(languages)
-	print (cols)
 	html += '\n  <td align="center" valign="top"><h4>Languages<br>'
 	html += '\n    <table border="0"><tr>'
 	for col in cols:
 		html += '\n      <td>'
 		for lang in col:
-			html += '\n          <input type="checkbox" id="%s" name="%s" value="%s"><label for="%s">%s<br>' % (lang[0], lang[0], lang[0], lang[0], lang[0])
+			html += '\n          <input type="checkbox" id="%s" name="language" value="%s"><label for="%s">%s<br>' % (lang[0], lang[0], lang[0], lang[0])
 		html += '\n      </td>'
 	html += '\n    </tr></table>'
 	html += '\n  </h4></td>'
@@ -122,7 +134,8 @@ def runs():
 	answer = Run.Run.getRecordsHTMLTable(1, image=data['image'], external_text=data['external_text'], 
 		internal_video=data['internal_video'], external_video=data['external_video'], 
 		simple=data['simple'], original_date_before=data['original_date_before'],
-		original_date_after=data['original_date_after'], linkedin=data['linkedin'], youtube=data['youtube'])
+		original_date_after=data['original_date_after'], linkedin=data['linkedin'], youtube=data['youtube'], 
+		languages=data['languages'])
 	return answer[0].encode() # The first report is the runs
 	
 # main driver function

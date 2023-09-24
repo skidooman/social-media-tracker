@@ -147,10 +147,17 @@ class Run(Base):
 				# Finally, add the details of the run (data)
 				Data.add(entry['id'], user_id, reportedDate, entry['views'], entry['likes'], entry['comments'], entry['reposts'], displays, minutes)
 
+	@classmethod
+	def getRecord(cls, user_id, entry_id):
+		command = "SELECT * FROM runs where user_id = %s and id = '%s'" % (user_id, entry_id)
+		results = cls.execute_commands([command], fetching=True)
+		return results[0]
+		
+
 
 	@classmethod
 	def getRecords(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None, simple=None,
-			original_date_before=None, original_date_after=None, linkedin=False, youtube=None):
+			original_date_before=None, original_date_after=None, linkedin=False, youtube=None, languages=[]):
 		command = "SELECT * FROM runs WHERE user_id = %s" % user_id
 
 		def getExternals(target):
@@ -237,16 +244,24 @@ class Run(Base):
 			
 			command += ")"
 
+		# Languages
+		if len(languages):
+			command += " AND ("
+			for i in range(0, len(languages)):
+				command += " language = '%s'" % languages[i]
+				if i < len(languages)-1:
+					command += ' OR '
+			command += ")"
+
 		command += ';'
 
-		print (command)
 		return cls.execute_commands([command], fetching=True)
 
 
 	#id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media
 	@classmethod
 	def getRecordsHTMLTable(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None,
-		simple=None, original_date_before=None, original_date_after=None, linkedin=False, youtube=False):
+		simple=None, original_date_before=None, original_date_after=None, linkedin=False, youtube=False, languages=[]):
 
 		def cleanText(myString):
 			if myString.startswith('<br><br> '):
@@ -273,7 +288,7 @@ class Run(Base):
 				
 
 		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple,
-			original_date_before, original_date_after, linkedin, youtube)
+			original_date_before, original_date_after, linkedin, youtube, languages)
 
 		##print ('RECORDS: %s' % len(records))
 		#html = '<h2>Records: %s</h2>' % len(records)
@@ -301,6 +316,7 @@ class Run(Base):
 		html += '\n\t\t\t\t<th class="num"><button>Repost<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Displays<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Minutes<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th></th>'
 		html += '\n\t\t\t</tr>'
 
 		# Totals
@@ -317,6 +333,7 @@ class Run(Base):
 		html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % likes
 		html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % comments
 		html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % reposts
+		html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % reposts
 
 		html += '\n\t\t\t</tr>'
 
@@ -326,7 +343,6 @@ class Run(Base):
 		
 		recordNum = 0
 		for record in records:
-			print (record)
 			recordNum += 1
 			html += '\n\t\t\t<tr>'
 			if record[9] == 'linkedin':
@@ -352,7 +368,10 @@ class Run(Base):
 
 
 			html += '\n\t\t\t\t<td>%s</td>' % record[9] # Social media
-			html += '\n\t\t\t\t<td class="num">%s</td>' % record[10] # Language
+			
+			# Languages
+			html += '\n\t\t\t\t<td>%s</td>' % record[10] # Language
+			
 			# Display last data point available
 			# run_id, user_id, date, views, likes, comments, reposts
 			points = Data.getRecords(user_id, record[0])
@@ -367,22 +386,14 @@ class Run(Base):
 				html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[8]
 			except Exception:
 				pass
+
+			html += '\n\t\t\t\t<td><button id="edit_%s" style="color: black;" onclick="edit(\'%s\', \'%s\');">Edit</button></td>' % (record[0], user_id, record[0]) 
+
 			html += '\n\t\t\t</tr>'
 		
 		html += '\n\t\t</tbody>'
 		html += '\n\t</table>'
 		html += '\n</div>'
-
-		'''html += "<script>"
-		html += "\n  let expandables = document.getElementsByClassName('expandable');"
-		html += "\n  for (let i = 0; i < expandables.length; i++) {"
-		html += "\n    expandables[i].addEventListener('click', () => {"
-		#html += "\n    alert('clicked');"
-		html += "\n     if (expandables[i].style.overflow == 'hidden') {expandables[i].style.overflow ='visible'; expandables[i].style.whiteSpace='normal';}"
-		html += "\n     else {expandables[i].style.overflow = 'hidden'; expandables[i].style.whiteSpace='nowrap';}"
-		html += "\n  });}"
-		html += "\n</script>"'''
-
 
 		return html, cls.getKeywordHtml(user_id, records)
 

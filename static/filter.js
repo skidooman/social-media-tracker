@@ -11,6 +11,7 @@ function filter(url)
         var original_date_after= false;
 	var linkedin = false;
 	var youtube = false;
+	var languages = [];
 
 	if (document.getElementById('image').checked) image=true;
 	if (document.getElementById('article').checked) external_text=true;
@@ -23,7 +24,19 @@ function filter(url)
 	if (end.length) original_date_after=end;	
 	if (document.getElementById('linkedin').checked) linkedin=true;
 	if (document.getElementById('youtube').checked) youtube=true;
-	
+
+	inputs = document.getElementsByTagName('input');
+	languages = []
+	for (var i=0; i < inputs.length; i++)
+	{
+		//alert(inputs[i].name);
+		if (inputs[i].name == 'language')
+		{
+			//alert('CAUGHT ' + inputs[i].id);
+			if (inputs[i].checked) languages.push(inputs[i].id);
+		}
+	}
+	console.log(languages);
 
 	answer = fetch(url, {
 	  method: 'POST',
@@ -37,6 +50,7 @@ function filter(url)
 		original_date_after: original_date_after,
 		linkedin: linkedin,
 		youtube: youtube,
+		languages: languages,
 	  }),
 	  headers: {
 	    'Content-type': 'application/json; charset=UTF-8',
@@ -54,3 +68,8 @@ function filter(url)
 	//alert(answer);
 }
 	
+function edit(user_id, id)
+{
+	url = '/edit/' + user_id + '/' + id;
+	window.location.href = url;
+}
