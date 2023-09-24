@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, math
 from flask import Flask, render_template, Response, request
 
 sys.path.append(os.getcwd() + '/database')
@@ -29,7 +29,30 @@ def filters(url):
 	html += '\n    <input type="checkbox" id="linkedin" name="linkedin" value="linkedin"><label for="linkedin">LinkedIn<br>'
 	html += '\n    <input type="checkbox" id="youtube" name="youtube" value="youtube"><label for="youtube">YouTube<br>'	
 	html += '\n  </h4></td>'
-	html += '\n  <td width="50%">&nbsp;</td>'
+	languages = Run.Run.getLanguages()
+	print ('languages: %s' % languages)
+	maxRows = 5
+	colNum = math.ceil(len(languages)/maxRows)
+	cols = []
+	front_index = maxRows
+	end_index = 0
+	for i in range(0, colNum):
+		cols.append(languages[end_index:front_index-1])
+		end_index = front_index
+		front_index += maxRows
+		if front_index > len(languages):
+			front_index = len(languages)
+	print (cols)
+	html += '\n  <td align="center" valign="top"><h4>Languages<br>'
+	html += '\n    <table border="0"><tr>'
+	for col in cols:
+		html += '\n      <td>'
+		for lang in col:
+			html += '\n          <input type="checkbox" id="%s" name="%s" value="%s"><label for="%s">%s<br>' % (lang[0], lang[0], lang[0], lang[0], lang[0])
+		html += '\n      </td>'
+	html += '\n    </tr></table>'
+	html += '\n  </h4></td>'
+	html += '\n  <td width="40%">&nbsp;</td>'
 	html += '\n</tr>'
 	html += '</table>'
 	return html

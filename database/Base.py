@@ -3,8 +3,21 @@
 
 import psycopg2
 from config import config
+from psycopg2 import sql
 
 class Base:
+	def getUniques(column, table):
+	    conn = None
+	    try:
+	        params = config()
+	        conn = psycopg2.connect(**params)
+	        cursor = conn.cursor()
+	        data = cursor.execute(sql.SQL('SELECT DISTINCT {} FROM %s' % table).format(sql.Identifier(column)))
+	        results = cursor.fetchall()
+	        return results
+	    except Exception as error:
+	        print ('Could not retrieve uniques: %s' % error)
+
 	def execute_commands(commands, fetching=False):
 	    conn = None
 	    try:

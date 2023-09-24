@@ -50,6 +50,13 @@ class Run(Base):
 				"VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')") % (id, user_id, date, date_approx, text.replace('\'', '"'), text_link, image_link, video_link, internal_video, social_media, lang_code)
 			return cls.execute_commands([command])
 
+	@classmethod
+	def getLanguages(cls):
+		command = "SELECT DISTINCT {language} from Runs"
+		results = cls.getUniques('language', 'Runs')
+		results.sort()
+		return results
+
 	# This imports a properly formatted JSON file
 	@classmethod
 	def importFile(cls, user_id, media, date_str, filename):
