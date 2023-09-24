@@ -24,8 +24,12 @@ def filters(url):
 	html += '\n  <td valign="top"><h4>Publication date<br>'
 	html += '\n    Start date: <input type="date" id="pub_start"><br>'
 	html += '\n    End date: <input type="date" id="pub_end"><br>'
-	html += '\n  <td width="50%">&nbsp;</td>'
 	html += '\n  </h4></td>'
+	html += '\n  <td valign="top"><h4>Media<br>'
+	html += '\n    <input type="checkbox" id="linkedin" name="linkedin" value="linkedin"><label for="linkedin">LinkedIn<br>'
+	html += '\n    <input type="checkbox" id="youtube" name="youtube" value="youtube"><label for="youtube">YouTube<br>'	
+	html += '\n  </h4></td>'
+	html += '\n  <td width="50%">&nbsp;</td>'
 	html += '\n</tr>'
 	html += '</table>'
 	return html
@@ -37,7 +41,7 @@ def hashes():
 	answer = Run.Run.getRecordsHTMLTable(1, image=data['image'], external_text=data['external_text'], 
 		internal_video=data['internal_video'], external_video=data['external_video'], 
 		simple=data['simple'], original_date_before=data['original_date_before'],
-		original_date_after=data['original_date_after'])
+		original_date_after=data['original_date_after'], linkedin=data['linkedin'], youtube=data['youtube'])
 	return answer[1].encode() # The second report is the hashes
 
 @app.route('/hash')
@@ -95,7 +99,7 @@ def runs():
 	answer = Run.Run.getRecordsHTMLTable(1, image=data['image'], external_text=data['external_text'], 
 		internal_video=data['internal_video'], external_video=data['external_video'], 
 		simple=data['simple'], original_date_before=data['original_date_before'],
-		original_date_after=data['original_date_after'])
+		original_date_after=data['original_date_after'], linkedin=data['linkedin'], youtube=data['youtube'])
 	return answer[0].encode() # The first report is the runs
 	
 # main driver function

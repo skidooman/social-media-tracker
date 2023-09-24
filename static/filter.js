@@ -9,6 +9,8 @@ function filter(url)
 	var image = false;
         var original_date_before = false;
         var original_date_after= false;
+	var linkedin = false;
+	var youtube = false;
 
 	if (document.getElementById('image').checked) image=true;
 	if (document.getElementById('article').checked) external_text=true;
@@ -19,6 +21,9 @@ function filter(url)
 	var end = document.getElementById('pub_start').value;
 	if (start.length) original_date_before=start;	
 	if (end.length) original_date_after=end;	
+	if (document.getElementById('linkedin').checked) linkedin=true;
+	if (document.getElementById('youtube').checked) youtube=true;
+	
 
 	answer = fetch(url, {
 	  method: 'POST',
@@ -30,6 +35,8 @@ function filter(url)
 		simple: simple,
 		original_date_before: original_date_before, 
 		original_date_after: original_date_after,
+		linkedin: linkedin,
+		youtube: youtube,
 	  }),
 	  headers: {
 	    'Content-type': 'application/json; charset=UTF-8',

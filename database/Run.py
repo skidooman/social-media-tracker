@@ -143,7 +143,7 @@ class Run(Base):
 
 	@classmethod
 	def getRecords(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None, simple=None,
-			original_date_before=None, original_date_after=None):
+			original_date_before=None, original_date_after=None, linkedin=False, youtube=None):
 		command = "SELECT * FROM runs WHERE user_id = %s" % user_id
 
 		def getExternals(target):
@@ -212,6 +212,24 @@ class Run(Base):
 		if original_date_after:
 			command += " AND publication_date > '%s'" % original_date_after
 
+		# Media restrictions
+		if not linkedin and not youtube:
+			pass
+		else:
+			keywords = []
+			if linkedin:
+				keywords.append('linkedin')
+			if youtube:
+				keywords.append('youtube')
+			
+			command += " AND ("
+			for i in range(0, len(keywords)):
+				command += " social_media = '%s'" % keywords[i]
+				if i < len(keywords)-1:
+					command += ' OR '
+			
+			command += ")"
+
 		command += ';'
 
 		print (command)
@@ -221,7 +239,7 @@ class Run(Base):
 	#id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media
 	@classmethod
 	def getRecordsHTMLTable(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None,
-		simple=None, original_date_before=None, original_date_after=None):
+		simple=None, original_date_before=None, original_date_after=None, linkedin=False, youtube=False):
 
 		def cleanText(myString):
 			if myString.startswith('<br><br> '):
@@ -248,7 +266,7 @@ class Run(Base):
 				
 
 		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple,
-			original_date_before, original_date_after)
+			original_date_before, original_date_after, linkedin, youtube)
 
 		##print ('RECORDS: %s' % len(records))
 		#html = '<h2>Records: %s</h2>' % len(records)
