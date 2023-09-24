@@ -376,16 +376,32 @@ class Run(Base):
 			# run_id, user_id, date, views, likes, comments, reposts
 			points = Data.getRecords(user_id, record[0])
 			try:
+				pointsCovered = 1
 				currentPoint = points[len(points)-1]
 				html += '\n\t\t\t\t<td>%s</td>' % currentPoint[2]
+				pointsCovered = 2
 				html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[3]
+				pointsCovered = 3
 				html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[4]
+				pointsCovered = 4
 				html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[5]
+				pointsCovered = 5
 				html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[6]
-				html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[7]
-				html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[8]
+				pointsCovered = 6
+				try:
+					html += '\n\t\t\t\t<td class="num">%s</td>' % int(currentPoint[7])
+				except Exception:
+					html += '\n\t\t\t\t<td class="num">-1</td>'
+				pointsCovered = 7
+				try:
+					html += '\n\t\t\t\t<td class="num">%s</td>' % int(currentPoint[8])
+				except Exception:
+					html += '\n\t\t\t\t<td class="num">-1</td>'
+
 			except Exception:
-				pass
+				while pointsCovered != 9:
+					html += '\n\t\t\t\t<td class="num">-1</td>'
+					pointsCovered += 1
 
 			html += '\n\t\t\t\t<td><button id="edit_%s" style="color: black;" onclick="edit(\'%s\', \'%s\');">Edit</button></td>' % (record[0], user_id, record[0]) 
 
