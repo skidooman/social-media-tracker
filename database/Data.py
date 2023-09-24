@@ -15,13 +15,15 @@ class Data(Base):
 			'likes INT,'
 			'comments INT,'
 			'reposts INT,'
+			'displays INT,'
+			'minutes INT,'
 			'UNIQUE(run_id, user_id, date))')
 		return cls.execute_commands([command])
 
 	@classmethod
-	def add(cls, run_id, user_id, date, views, likes, comments, reposts):
-		command = ("INSERT INTO data (run_id, user_id, date, views, likes, comments, reposts)"
-			"VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s')") % (run_id, user_id, date, views, likes, comments, reposts)
+	def add(cls, run_id, user_id, date, views, likes, comments, reposts, displays=0, minutes=0):
+		command = ("INSERT INTO data (run_id, user_id, date, views, likes, comments, reposts, displays, minutes)"
+			"VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')") % (run_id, user_id, date, views, likes, comments, reposts, displays, minutes)
 		return cls.execute_commands([command])
 
 	@classmethod
@@ -46,6 +48,8 @@ class Data(Base):
 		html += '\n\t\t\t\t<th><button>likes</button></th>'
 		html += '\n\t\t\t\t<th><button>comments</button></th>'
 		html += '\n\t\t\t\t<th><button>reposts</button></th>'
+		html += '\n\t\t\t\t<th><button>displays</button></th>'
+		html += '\n\t\t\t\t<th><button>minutes</button></th>'
 		html += '\n\t\t\t</tr>'
 		html += '\n\t\t</thead>'
 

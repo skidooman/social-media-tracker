@@ -129,8 +129,16 @@ class Run(Base):
 				else:
 					cls.add(entry['id'], user_id, date, entry['text'], media, date_approx=dateApprox)
 
+				# Displays and minutes are only from Youtube
+				displays = 0
+				minutes = 0
+				if 'displays' in entry.keys():
+					displays = entry['displays']
+				if 'minutes' in entry.keys():
+					minutes = entry['minutes']
+
 				# Finally, add the details of the run (data)
-				Data.add(entry['id'], user_id, reportedDate, entry['views'], entry['likes'], entry['comments'], entry['reposts'])
+				Data.add(entry['id'], user_id, reportedDate, entry['views'], entry['likes'], entry['comments'], entry['reposts'], displays, minutes)
 
 
 	@classmethod
@@ -218,6 +226,8 @@ class Run(Base):
 		def cleanText(myString):
 			if myString.startswith('<br><br> '):
 				return myString[4:]
+			else:
+				return myString
 
 		def getTotals(user_id, records):
 			views = 0
@@ -226,11 +236,14 @@ class Run(Base):
 			reposts = 0
 			for record in records:
 				points = Data.getRecords(user_id, record[0])
-				currentPoint = points[len(points)-1]
-				views += currentPoint[3]
-				likes += currentPoint[4]
-				comments += currentPoint[5]
-				reposts += currentPoint[6]
+				try:
+					currentPoint = points[len(points)-1]
+					views += currentPoint[3]
+					likes += currentPoint[4]
+					comments += currentPoint[5]
+					reposts += currentPoint[6]
+				except Exception:
+					break
 			return views, likes, comments, reposts
 				
 
@@ -261,6 +274,8 @@ class Run(Base):
 		html += '\n\t\t\t\t<th class="num"><button>Likes<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Comment<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Repost<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>Displays<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>Minutes<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t</tr>'
 
 		# Totals
@@ -286,10 +301,13 @@ class Run(Base):
 		
 		recordNum = 0
 		for record in records:
+			print (record)
 			recordNum += 1
 			html += '\n\t\t\t<tr>'
 			if record[9] == 'linkedin':
 				html += '\n\t\t\t\t<td class="num"><a href="https://www.linkedin.com/embed/feed/update/%s" target="_top">%s</a></td>' % (record[0], record[0]) # ID
+			elif record[9] == 'youtube':
+				html += '\n\t\t\t\t<td class="num"><a href="https://www.youtube.com/watch?v=%s" target="_top">%s</a></td>' % (record[0], record[0]) # ID				
 			else:
 				html += '\n\t\t\t\t<td class="num">%s</td>' % record[0] # ID
 
@@ -313,13 +331,17 @@ class Run(Base):
 			# Display last data point available
 			# run_id, user_id, date, views, likes, comments, reposts
 			points = Data.getRecords(user_id, record[0])
-			currentPoint = points[len(points)-1]
-			html += '\n\t\t\t\t<td>%s</td>' % currentPoint[2]
-			html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[3]
-			html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[4]
-			html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[5]
-			html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[6]
-
+			try:
+				currentPoint = points[len(points)-1]
+				html += '\n\t\t\t\t<td>%s</td>' % currentPoint[2]
+				html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[3]
+				html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[4]
+				html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[5]
+				html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[6]
+				html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[7]
+				html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[8]
+			except Exception:
+				pass
 			html += '\n\t\t\t</tr>'
 		
 		html += '\n\t\t</tbody>'
