@@ -465,3 +465,11 @@ class Run(Base):
 		html += '\n\t</table>'
 
 		return html
+
+	@classmethod
+	def update(cls, user_id, id, language):
+		command = "UPDATE Runs SET language='%s' WHERE (user_id='%s' AND id='%s')" % (language, user_id, id)
+		print ('running %s' % command)
+		cls.execute_commands([command], fetching=False)
+		return True
+

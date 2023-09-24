@@ -15,10 +15,32 @@ def edit(user_id, entry_id):
 	html = head()
 	html += '\n\n<body>\n\n'
 	html += menu()
+	html += "<script>function submitChanges(user_id, id) {"
+	html += "\n language = document.getElementById('language').value;"
+	html += "\n payload = JSON.stringify({" 
+	html += "\n  user_id: user_id, "
+	html += "\n      id: id,"
+	html += "\n      language: language,"
+	html += "\n        });"
+	html += "\n  fetch('/submit', {"
+	html += "\n    method: 'POST',"
+	html += "\n    body: payload,"
+	html += "\n    headers: {'Content-type': 'application/json; charset=UTF-8', }"
+	html += "\n  })"
+	html += "\n  .then(function(response){"
+	html += "\n         //alert (response.text());"
+	html += "\n        if(response.text())"
+	html += "\n		window.location='/';"
+	html += "\n		else alert('error');})"
+	html += "\n  .then(function(data)"
+	html += "\n    {console.log(data);"
+	html += "\n    }).catch(error => console.error('Error:', error))"; 
+	html += "\n }</script>"
 	html += "\n<table border='0'>"
 	html += '\n   <tr><td>ID</td><td>%s</td></tr>' % entry[0]
 	html += '\n   <tr><td>Description</td><td>%s</td></tr>' % entry[2]
-	html += '\n   <tr><td>Language</td><td>%s</td></tr>' % entry[10]
+	html += '\n   <tr><td>Language</td><td><input type="text" id="language" maxlength="2" size="1" value="%s"/></td></tr>' % entry[10]
+	html += '\n\  <tr><td><button onclick="submitChanges(\'%s\',\'%s\');" style="color:black;">Submit</button></td></tr>' % (user_id, entry_id)
 	html += "\n</table>"
 	html += '\n</body></html>'
 	return html
@@ -137,7 +159,14 @@ def runs():
 		original_date_after=data['original_date_after'], linkedin=data['linkedin'], youtube=data['youtube'], 
 		languages=data['languages'])
 	return answer[0].encode() # The first report is the runs
-	
+
+@app.route('/submit', methods=['POST'])
+def submit():
+	data = request.json
+	print ('language: %s' % data['language'])
+	status = Run.Run.update(data['user_id'], data['id'], data['language'])
+	return 'Status: %s' % status
+
 # main driver function
 if __name__ == '__main__':
 	# run() method of Flask class runs the application

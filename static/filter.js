@@ -73,3 +73,4 @@ function edit(user_id, id)
 	url = '/edit/' + user_id + '/' + id;
 	window.location.href = url;
 }
+
