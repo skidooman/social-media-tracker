@@ -151,9 +151,7 @@ class Run(Base):
 	def getRecord(cls, user_id, entry_id):
 		command = "SELECT * FROM runs where user_id = %s and id = '%s'" % (user_id, entry_id)
 		results = cls.execute_commands([command], fetching=True)
-		return results[0]
-		
-
+		return results[0]		
 
 	@classmethod
 	def getRecords(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None, simple=None,

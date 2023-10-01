@@ -2,12 +2,35 @@ import os, sys, math
 from flask import Flask, render_template, Response, request
 
 sys.path.append(os.getcwd() + '/database')
-from database import Run 
+from database import Run, Campaign
 
 # For snapping, we may need to include the path to templates
 templates_dir = 'templates'
 static_dir = 'static'
 app = Flask(__name__, template_folder=templates_dir, static_folder=static_dir)
+
+@app.route('/campaign')
+def campaign():
+	html = head()
+	html += '\n\n<body onload="filter(\'/campaigns\')">\n\n'
+	html += menu()
+	html += filters('/campaigns')
+	html += main()
+	return html
+
+@app.route('/campaigns', methods=['POST'])
+def campaigns():
+	'''data = request.json
+	#{'image': False, 'external_text': False, 'internal_video': False, 'external_video': False, 'simple': False, 'original_date_before': False, 'original_date_after': False}
+	#answer = Run.Run.getRecordsHTMLTable(1, image=data['image'], external_text=data['external_text'], 
+		internal_video=data['internal_video'], external_video=data['external_video'], 
+		simple=data['simple'], original_date_before=data['original_date_before'],
+		original_date_after=data['original_date_after'], linkedin=data['linkedin'], youtube=data['youtube'], 
+		languages=data['languages'])
+	'''
+	answer = Campaign.Campaign.getRecordsHTMLTable(1)
+	return answer[0].encode() # The first report is the runs
+
 
 @app.route('/edit/<user_id>/<entry_id>')
 def edit(user_id, entry_id):
@@ -131,8 +154,6 @@ def importFunction():
 	html += "\n</body></html>"
 	return html
 
-
-
 @app.route('/')
 def index():
 	html = head()
@@ -157,6 +178,7 @@ def menu():
 	html += '\n  <td><button onclick="window.location.href=\'/\';"><h3 style="color:white; background: transparent; border: none;">Runs</h3></button></td>'
 	html += '\n  <td><button onclick="window.location.href=\'/hash\';"><h3 style="color:white; background: transparent;">Hashes</h3></button></td>'
 	html += '\n  <td><button onclick="window.location.href=\'/import\';"><h3 style="color:white; background: transparent;">Import</h3></button></td>'
+	html += '\n  <td><button onclick="window.location.href=\'/campaign\';"><h3 style="color:white; background: transparent;">Campaign</h3></button></td>'
 	html += '\n  <td width="75%">&nbsp;</td>'
 	html += '\n</tr>'
 	html += '</table>'
