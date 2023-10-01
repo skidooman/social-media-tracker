@@ -3,52 +3,69 @@
 
 from Base import Base
 import json, datetime
-from Data import Data
-#from textblob import TextBlob
-import langid
 
-class Run(Base):
-	name_of_table = 'runs'
+class Campaign(Base):
+	name_of_table = 'campaigns'
 
 	@classmethod
 	def create(cls):
-		command = ('CREATE TABLE runs('
-			'id VARCHAR(255) UNIQUE PRIMARY KEY,'
-			'user_id INTEGER,'
-			'CONSTRAINT fk_user_id FOREIGN KEY(user_id) REFERENCES users(id),'
-			'publication_date DATE,'
-			'publication_date_approx BOOLEAN DEFAULT FALSE,' 
-			'text VARCHAR(3000) NOT NULL,'
-			'text_link VARCHAR(2083) NOT NULL,'
-			'image_link VARCHAR(2083) NOT NULL,'
-			'video_link VARCHAR(2083) NOT NULL,'
-			'internal_video BOOLEAN DEFAULT FALSE,'
-			'social_media VARCHAR(16) NOT NULL,'
-			'language VARCHAR(2))')
+		command = ('CREATE TABLE campaigns('
+			'id SERIAL PRIMARY KEY,'
+			'title VARCHAR(255),'
+			'description VARCHAR(2084),'
+			'location VARCHAR(255),'
+			'is_subcampaign INT)')
 		cls.execute_commands([command])
 
+		# Here, we need a second table that associates Runs and Campaigns
+		command = ('CREATE TABLE runs_to_campaigns('
+			'run_id VARCHAR(255) PRIMARY KEY,'
+			'campaign_id INT,'
+			'UNIQUE (run_id, campaign_id))')
+		cls.execute_commands([command]) 
+
 	@classmethod
-	def add(cls, id, user_id, date, text, social_media, date_approx=False, text_link='', image_link='', video_link='', internal_video=False):
-		#Does the entry exists?
-		entryExists = cls.recordExistsIdString(cls.name_of_table, id)
-		if(entryExists):
-			# For the moment, let us not do anything
-			# The resolution we would get on the date is likely to be less good, at least for LinkedIn
-			'''command = ("UPDATE runs SET publication_date='%s-%s-%s', publication_date_approx='%s', text='%s', text_link='%s', image_link='%s', video_link='%s', internal_video='%s' WHERE (id='%s')" % 
-				(date.year, date.month, date.day, date_approx, text.replace('\'', '"'), text_link, image_link, video_link, internal_video, id))
-			cls.execute_commands([command])'''
-			return entryExists
-			
-		else:
-			# What is the language?
-			#lang = TextBlob(text)
-			lang_code = langid.classify(text)[0]
-			print (lang_code)
-			if len(lang_code) > 2:
-				lang_code = lang_code[:1]
-			command = ("INSERT INTO runs (id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media, language)"
-				"VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')") % (id, user_id, date, date_approx, text.replace('\'', '"'), text_link, image_link, video_link, internal_video, social_media, lang_code)
-			return cls.execute_commands([command])
+	def add(cls, title=None, description=None, location=None, is_subcampaign=None, runs=[]):
+		command = ("INSERT INTO campaigns (title, description, location, is_subcampaign) VALUES (NULL, NULL, NULL, NULL) RETURNING id")
+		id = cls.execute_commands([command])
+		cls.update(id, title, description, location, is_subcampaign, runs)
+		return id
+
+	@classmethod
+	def update(cls, id, title=None, description=None, location=None, is_subcampaign=None, runs=[]):
+		if not (title or description or location or is_subcampaign or len(runs)):
+			return
+		fields = []
+		if title:
+			fields.append("title='%s'" % title)
+		if description:
+			fields.append("description='%s'" % description)
+		if location:
+			fields.append("location='%s'" % location)
+		if is_subcampaign:
+			fields.append("is_subcampaign='%s'" % is_subcampaign)
+		
+		if fields:
+			command = "UPDATE campaigns SET "
+			pos = 0
+			for field in fields:
+				command += field
+				pos += 1
+				if pos < len(fields):
+					command += ', '
+				
+			command += " WHERE id=%s" % id
+			cls.execute_commands([command])
+		
+		if len(runs):
+			command = "INSERT INTO runs_to_campaigns (run_id, campaign_id) VALUES "
+			pos = 0
+			for run in runs:
+				command += "('%s', %s)" % (run, id)
+				pos += 1
+				if pos < len(runs):
+					command += ", "
+			cls.execute_commands([command])
 
 	@classmethod
 	def getLanguages(cls):
@@ -481,11 +498,4 @@ class Run(Base):
 		html += '\n\t</table>'
 
 		return html
-
-	@classmethod
-	def update(cls, user_id, id, language):
-		command = "UPDATE Runs SET language='%s' WHERE (user_id='%s' AND id='%s')" % (language, user_id, id)
-		print ('running %s' % command)
-		cls.execute_commands([command], fetching=False)
-		return True
 

@@ -1,6 +1,7 @@
 from User import User
 from Run import Run
 from Data import Data
+from Campaign import Campaign
 import sys, os, time
 from linkedin_analysis import buildDatabase as LI_Database
 from linkedin_analysis import saveJSON as LI_save_json
@@ -31,8 +32,11 @@ def init():
 	Run.create()
 	Data.create()
 	id = User.add('Steve', 'Barriault', 'skidoomaniac@yahoo.com', 'vector123')
+	Campaign.create()
+	#id = Campaign.add(title='test', description='test', location='test', runs=['abcd'])
+	#print ('ID: %s' % id)
 
-	Run.importFile(id, 'linkedin', '2022-10-01', 'LinkedIn_oct22.html.json')
+	#Run.importFile(id, 'linkedin', '2022-10-01', 'LinkedIn_oct22.html.json')
 
 
 def getRecords(image=None, external_text=None, internal_video=None, external_video=None, simple=None,

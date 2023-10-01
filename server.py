@@ -113,7 +113,7 @@ def hash():
 def head():
 	html = '<html>'
 	html += '\n<head>\n  <link rel="stylesheet" href="static/sortable-table.css">\n  <script src="static/sortable-table.js"></script>'
-	html += '\n  <script src="static/filter.js"></script>'
+	html += '\n  <script src="static/filter.js"></script><script src="static/utilities.js"></script>'
 	html += '\n  <style>button { padding: 4px; margin: 1px; font-size: 100%; font-weight: bold; color: white; background: transparent; border: none; width: 100%; text-align: left; outline: none; cursor: pointer;}</style>'
 	html += '\n</head>'
 	return html
