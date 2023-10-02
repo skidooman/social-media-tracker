@@ -50,6 +50,20 @@ class Run(Base):
 				"VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')") % (id, user_id, date, date_approx, text.replace('\'', '"'), text_link, image_link, video_link, internal_video, social_media, lang_code)
 			return cls.execute_commands([command])
 
+	# Find all campaigns associated with runs
+	@classmethod
+	def getAllCampaignRuns(cls):
+		dict = {}
+		command = "SELECT * FROM runs_to_campaigns"
+		results = cls.execute_commands([command], fetching=True)
+		print (results)
+		for result in results:
+			if result[0] in dict.keys():
+				dict[result[0]].append(result[1])
+			else:
+				dict[result[0]] = [result[1]]
+		return dict
+
 	# Find runs related to a certain campaign
 	@classmethod
 	def getCampaignRuns(cls, campaign_id):
@@ -309,7 +323,9 @@ class Run(Base):
 			for result in results:
 				campaign_runs.append(result[0])
 
-		print ('here %s' % campaign_runs)
+		# All campaign runs is a dictionary that maps runs->[campaigns]
+		all_campaign_runs = cls.getAllCampaignRuns()
+
 		##print ('RECORDS: %s' % len(records))
 		#html = '<h2>Records: %s</h2>' % len(records)
 		html = '<div class="table-wrap">\n\t<table class="sortable">'
@@ -330,6 +346,7 @@ class Run(Base):
 		html += '\n\t\t\t\t<th class="num"><button>Repost<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Displays<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Minutes<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th><button>Campaigns<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th></th>'
 		html += '\n\t\t\t</tr>'
 
@@ -350,7 +367,7 @@ class Run(Base):
 			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % reposts
 			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % displays
 			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%.1f hours</th>' % (minutes/60)
-
+			html += '\n\t\t\t\t<th></th>'
 			html += '\n\t\t\t</tr>'
 
 		html += '\n\t\t</thead>'
@@ -424,7 +441,19 @@ class Run(Base):
 				while pointsCovered != 9:
 					html += '\n\t\t\t\t<td class="num">-1</td>'
 					pointsCovered += 1
+			
+			currentCampaigns = ''
+			pos = 0
+			if record[0] in all_campaign_runs.keys():
+				print (all_campaign_runs)
+				for campaign in all_campaign_runs[record[0]]:	
+					currentCampaigns += str(campaign)
+					pos += 1
+					if pos < len(all_campaign_runs[record[0]]):
+						currentCampaigns += ', '
 
+			html += '\n\t\t\t\t<td>%s</td>' % currentCampaigns
+			
 			html += '\n\t\t\t\t<td><button id="edit_%s" style="color: black;" onclick="edit(\'%s\', \'%s\');">Edit</button></td>' % (record[0], user_id, record[0]) 
 
 			html += '\n\t\t\t</tr>'
