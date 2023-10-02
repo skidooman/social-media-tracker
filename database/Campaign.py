@@ -29,9 +29,10 @@ class Campaign(Base):
 
 	@classmethod
 	def add(cls, user_id, title=None, description=None, location=None, is_subcampaign=None, runs=[]):
+		print ("Adding title %s" % title)
 		command = ("INSERT INTO campaigns (title, description, location, is_subcampaign, user_id) VALUES (NULL, NULL, NULL, NULL, %s) RETURNING id" % user_id)
-		id = cls.execute_commands([command])
-		cls.update(id, title, description, location, is_subcampaign, runs)
+		id = cls.execute_commands([command], fetching=True)[0]
+		cls.update(id=id, title=title, description=description, location=location, is_subcampaign=is_subcampaign, runs=runs)
 		return id
 
 	'''@classmethod
@@ -84,6 +85,7 @@ class Campaign(Base):
 		
 		recordNum = 0
 		for record in records:
+			print (record)
 			html += '\n\t\t\t<tr>'
 			html += '\n\t\t\t\t<td class="num">%s</td>' % record[0] # Campaign ID
 			html += '\n\t\t\t\t<td>%s</td>' % record[1] # Title
@@ -103,22 +105,19 @@ class Campaign(Base):
 					languages.append(runRecord[10])
 				if first_run is None or first_run > runRecord[2]:
 					first_run = runRecord[2]
-				dataRecords = Data.getRecords(user_id, run)
-				for data in dataRecords:
-					if last_run is None or last_run < data[2]:
-						last_run = data[2]
+				if last_run is None or last_run < runRecord[2]:
+					last_run = runRecord[2]
 				views = dataRecord[-1][3]
 
 			html += '\n\t\t\t\t<td>%s</td>' % first_run
 			html += '\n\t\t\t\t<td>%s</td>' % last_run
-			html += '\n\t\t\t\t<td>' % len(runs)
 			pos = 0
 			for language in languages:
 				html += language
 				pos += 1
 				if pos < len(languages):
 					html += ', '
-			html ++ '</td>'
+			html += '</td>'
 			html += '\n\t\t\t\t<td class="num">%s</td>' % views
 
 			html += '\n\t\t\t</tr>'
@@ -132,8 +131,10 @@ class Campaign(Base):
 	@classmethod
 	def update(cls, id, title=None, description=None, location=None, is_subcampaign=None, runs=[]):
 		if not (title or description or location or is_subcampaign or len(runs)):
+			print ('esc')
 			return
 		fields = []
+		print ('in update')
 		if title:
 			fields.append("title='%s'" % title)
 		if description:
@@ -142,8 +143,8 @@ class Campaign(Base):
 			fields.append("location='%s'" % location)
 		if is_subcampaign:
 			fields.append("is_subcampaign='%s'" % is_subcampaign)
-		
-		if fields:
+		print (fields)
+		if len(fields):
 			command = "UPDATE campaigns SET "
 			pos = 0
 			for field in fields:
@@ -153,6 +154,7 @@ class Campaign(Base):
 					command += ', '
 				
 			command += " WHERE id=%s" % id
+			print (command)
 			cls.execute_commands([command])
 		
 		if len(runs):

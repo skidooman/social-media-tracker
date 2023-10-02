@@ -15,6 +15,7 @@ def campaign():
 	html += '\n\n<body onload="filter(\'/campaigns\')">\n\n'
 	html += menu()
 	html += filters('/campaigns')
+	html += '\n\t<table border="0"><tr><td><button onclick="window.location=\'/edit_campaign/1/-1\';" style="background-color: black;">New campaign</button></td><td width="80%"></td></tr></table>'
 	html += main()
 	return html
 
@@ -30,7 +31,6 @@ def campaigns():
 	'''
 	answer = Campaign.Campaign.getRecordsHTMLTable(1)
 	return answer[0].encode() # The first report is the runs
-
 
 @app.route('/edit/<user_id>/<entry_id>')
 def edit(user_id, entry_id):
@@ -63,14 +63,91 @@ def edit(user_id, entry_id):
 	html += '\n   <tr><td>ID</td><td>%s</td></tr>' % entry[0]
 	html += '\n   <tr><td>Description</td><td>%s</td></tr>' % entry[2]
 	html += '\n   <tr><td>Language</td><td><input type="text" id="language" maxlength="2" size="1" value="%s"/></td></tr>' % entry[10]
+	html += '\n   <tr><td>Text</td><td>%s</td></tr>' % entry[4]
 	html += '\n\  <tr><td><button onclick="submitChanges(\'%s\',\'%s\');" style="color:black;">Submit</button></td></tr>' % (user_id, entry_id)
 	html += "\n</table>"
 	html += '\n</body></html>'
 	return html
 
 
+@app.route('/edit_campaign/<user_id>/<campaign_id>')
+def edit_campaign(user_id, campaign_id):
+	#entry = Campaign..getRecord(user_id, campaign_id)
+	html = head()
+	html += '\n\n<body>\n\n'
+	html += menu()
+	html += "<script>function submitChanges() {"
+	html += "\n var title = document.getElementById('title').value;"
+	html += "alert(title);"
+	html += "\n payload = JSON.stringify({" 
+	html += "\n  user_id: %s, " % user_id
+	html += "\n      campaign_id: document.getElementById('id').value,"
+	html += "\n      title: title,"
+	html += "\n      description: document.getElementById('description').value,"
+	html += "\n      location: document.getElementById('location').value,"
+	html += "\n        });"
+	html += "\n  fetch('/submit_campaign', {"
+	html += "\n    method: 'POST',"
+	html += "\n    body: payload,"
+	html += "\n    headers: {'Content-type': 'application/json; charset=UTF-8', }"
+	html += "\n  })"
+	html += "\n  .then(function(response){"
+	html += "\n         //alert (response.text());"
+	html += "\n        if(response.text())"
+	html += "\n		window.location='/campaign';"
+	html += "\n		else alert('error');})"
+	html += "\n  .then(function(data)"
+	html += "\n    {console.log(data);"
+	html += "\n    }).catch(error => console.error('Error:', error))"
+	html += "\n }</script>"
+	html += "\n<table border='0'>"
+	html += '\n  <tr><td>'
+	html += '\n   <table border="0">'
+	html += '\n    <tr><td align="left">ID</td><td align="left"><input type="text" id="id" maxlength="255" size="84"></td></tr>'
+	html += '\n    <tr><td align="left">Title</td><td align="left"><input type="text" id="title" maxlength="255" size="84"></td></tr>'
+	html += '\n    <tr><td align="left">Description</td><td align="left"><textarea id="description" cols="80" rows="5" maxlength="2048"></textarea></td></tr>'	
+	html += '\n    <tr><td align="left">Location</td><td align="left"><input type="text" id="location" maxlength="255" size="84"></td></tr>'
+	html += '\n   </tr></table>'
+	html += '\n  </td><td> &nbsp; &nbsp;</td><td>'
+	html += '\n   Runs<br>'
+	html += '\n     <select id="runs" multiple size="">'
+	runs = Run.Run.getRecords(user_id)
+	for run in runs:
+		print (run)
+		id = run[0]
+		date = run[2]
+		media = 'XX'
+		if run[9] == 'youtube':
+			media = 'YT'
+		elif run[9] == 'linkedin':
+			media = 'LI'
+		type = 'X'
+		if run[8]:
+			type = 'iV'
+		elif len(run[5]):
+			type = 'A'
+		elif run[9] == 'youtube':
+			media = 'YT'
+		text = run[4]
+		if len(text) > 40:
+			text = text[:40]
+		html += '\n      <option value="%s">%s-%s %s %s</option>' % (id, media, type, date, text)
+	html += '\n     </select>'
+	#html += '\n   <tr><td>ID</td><td>%s</td></tr>' % entry[0]
+	#html += '\n   <tr><td>Description</td><td>%s</td></tr>' % entry[2]
+	#html += '\n   <tr><td>Language</td><td><input type="text" id="language" maxlength="2" size="1" value="%s"/></td></tr>' % entry[10]
+	#html += '\n\  <tr><td><button onclick="submitChanges(\'%s\',\'%s\');" style="color:black;">Submit</button></td></tr>' % (user_id, entry_id)
+	html += '\n </tr>'
+	html += "\n</table>"
+	html += "\n<table border='0'><tr><td><button onclick='submitChanges();' style='background-color: black;'>Add</button></td><td><button onclick='window.location=\'/campaign\'' style='background-color:black;'>Cancel</button></td><td width='80%'></td></tr></table>"
+	html += '\n</body></html>'
+	return html
+
+	
+
+
 def filters(url):
-	html = '<table border="0" width="100%">'
+	html 	= '<table border="0" width="100%">'
 	html += '<tr>'
 	html += '\n  <td valign="top"><h3>Filters</h3><button onclick="filter(\'%s\')" style="background:black;">Submit</button></td>' % url
 	html += '\n  <td valign="top"><h4>Types<br>'
@@ -138,6 +215,7 @@ def head():
 	html += '\n<head>\n  <link rel="stylesheet" href="static/sortable-table.css">\n  <script src="static/sortable-table.js"></script>'
 	html += '\n  <script src="static/filter.js"></script><script src="static/utilities.js"></script>'
 	html += '\n  <style>button { padding: 4px; margin: 1px; font-size: 100%; font-weight: bold; color: white; background: transparent; border: none; width: 100%; text-align: left; outline: none; cursor: pointer;}</style>'
+	html += '\n  <style type="text/css"> .centerDiv { position: fixed; width:500px; height: 500px; margin: 0 auto; top:50%, left: 50%, transform: translate(-50%,-50%); z-index:10; visibility: hidden; background-color:blue; } </style> '
 	html += '\n</head>'
 	return html
 
@@ -166,6 +244,7 @@ def index():
 def main():
 	html = '\n<main>'
 	html += '\n<div id="main"></div>'
+
 	html += '\n</main>'
 	html += '</body>'
 	html += '</html>'
@@ -199,8 +278,21 @@ def runs():
 @app.route('/submit', methods=['POST'])
 def submit():
 	data = request.json
-	print ('language: %s' % data['language'])
 	status = Run.Run.update(data['user_id'], data['id'], data['language'])
+	return 'Status: %s' % status
+
+@app.route('/submit_campaign', methods=['POST'])
+def submit_campaign():
+	data = request.json
+	status = None
+	print (data)
+	try:
+		intId = int(data['id'])
+		# If we make it here we have already an ID, no need to add
+		status = Campaign.Campaign.update(data['id'], title=data['title'], description=data['description'], location=data['location'])
+	except Exception:
+		status = Campaign.Campaign.add(data['user_id'], title=data['title'], description=data['description'], location=data['location'])
+
 	return 'Status: %s' % status
 
 # main driver function

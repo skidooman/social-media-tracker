@@ -35,9 +35,9 @@ class Base:
 	        results = 0
 	        if fetching:
 	           results = cursor.fetchall()
-	        else:
+	        #else:
 	           # commit the changes
-	           conn.commit()
+	        conn.commit()
 	        
 	        conn.close()
 	        cursor.close()
@@ -50,7 +50,7 @@ class Base:
 	    finally:
 	        if conn is not None:
 	            conn.close()
-	
+
 	def recordExistsIdString(name_table, id):
 		conn = None
 		try:
