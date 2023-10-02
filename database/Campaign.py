@@ -29,26 +29,19 @@ class Campaign(Base):
 
 	@classmethod
 	def add(cls, user_id, title=None, description=None, location=None, is_subcampaign=None, runs=[]):
-		print ("Adding title %s" % title)
-		print ("Runs: %s" % runs)
 		command = ("INSERT INTO campaigns (title, description, location, is_subcampaign, user_id) VALUES (NULL, NULL, NULL, NULL, %s) RETURNING id" % user_id)
 		id = cls.execute_commands([command], fetching=True)[0]
 		cls.update(id=id, title=title, description=description, location=location, is_subcampaign=is_subcampaign, runs=runs)
 		return id
 
-	'''@classmethod
-	def getLanguages(cls):
-		command = "SELECT DISTINCT {language} from Runs"
-		results = cls.getUniques('language', 'Runs')
-		results.sort()
-		return results
-
 	@classmethod
-	def getRecord(cls, user_id, entry_id):
-		command = "SELECT * FROM runs where user_id = %s and id = '%s'" % (user_id, entry_id)
+	def getRecord(cls, user_id, campaign_id):
+		command = "SELECT * FROM campaigns where user_id = %s and id = '%s'" % (user_id, campaign_id)
 		results = cls.execute_commands([command], fetching=True)
-		return results[0]
-	'''	
+		if len(results):
+			return results[0]
+		else:
+			return []
 
 	@classmethod
 	def getRecords(cls, user_id):
@@ -79,6 +72,7 @@ class Campaign(Base):
 		html += '\n\t\t\t\t<th><button>Last run<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Languages<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button class="num">Views<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th></th>'
 		html += '\n\t\t\t</tr>'
 		html += '\n\t\t</thead>'
 
@@ -86,11 +80,11 @@ class Campaign(Base):
 		
 		recordNum = 0
 		for record in records:
-			print (record)
 			html += '\n\t\t\t<tr>'
 			html += '\n\t\t\t\t<td class="num">%s</td>' % record[0] # Campaign ID
 			html += '\n\t\t\t\t<td>%s</td>' % record[1] # Title
-			html += '\n\t\t\t\t<td>%s</td>' % record[2] # Description
+			html += '\n\t\t\t\t<td style="max-width: 200px; overflow:hidden; text-overflow: hidden;" width="200"><div class="expandable" id=\'exp%s\' onclick="toggle(\'exp%s\');" style="max-width:200px; white-space:nowrap; overflow: hidden; text-overflow: ellipsis;">%s</div></td>' % (record[2], record[2], record[2])
+			#html += '\n\t\t\t\t<td>%s</td>' % record[2] # Description
 
 			# Runs
 			runs = cls.getRuns(record[0])
@@ -122,7 +116,7 @@ class Campaign(Base):
 					html += ', '
 			html += '</td>'
 			html += '\n\t\t\t\t<td class="num">%s</td>' % views
-
+			html += '\n\t\t\t\t<td><button id="edit_%s" style="color: black;" onclick="edit_campaign(\'%s\', \'%s\');">Edit</button></td>' % (record[0], user_id, record[0]) 
 			html += '\n\t\t\t</tr>'
 		
 		html += '\n\t\t</tbody>'
@@ -157,10 +151,8 @@ class Campaign(Base):
 					command += ', '
 				
 			command += " WHERE id=%s" % id
-			print (command)
 			cls.execute_commands([command])
 		
-		print ('here id is %s' % id)
 		ID = id
 		if len(runs):
 			command = "INSERT INTO runs_to_campaigns (run_id, campaign_id) VALUES "
@@ -170,5 +162,4 @@ class Campaign(Base):
 				pos += 1
 				if pos < len(runs):
 					command += ", "
-			print (command)
 			cls.execute_commands([command])

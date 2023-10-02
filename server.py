@@ -74,7 +74,15 @@ def edit(user_id, entry_id):
 def edit_campaign(user_id, campaign_id):
 	#entry = Campaign..getRecord(user_id, campaign_id)
 	html = head()
-	html += '\n\n<body onload="load(\'/runs_simple\')">\n\n'
+	try:
+		if int(campaign_id) > -1:
+			html += '\n\n<body onload="load(\'/runs_campaign/%s\')">\n\n' % campaign_id
+		else:
+			html += '\n\n<body onload="load(\'/runs_simple\')">\n\n'
+	except Exception:
+		html += '\n\n<body onload="load(\'/runs_simple\')">\n\n'
+	
+
 	html += menu()
 	html += "<script>function submitChanges() {"
 	html += "\n var title = document.getElementById('title').value;"
@@ -108,40 +116,28 @@ def edit_campaign(user_id, campaign_id):
 	html += "\n<table border='0'>"
 	html += '\n  <tr><td>'
 	html += '\n   <table border="0">'
-	html += '\n    <tr><td align="left">ID</td><td align="left"><input type="text" id="id" maxlength="255" size="84"></td></tr>'
-	html += '\n    <tr><td align="left">Title</td><td align="left"><input type="text" id="title" maxlength="255" size="84"></td></tr>'
-	html += '\n    <tr><td align="left">Description</td><td align="left"><textarea id="description" cols="80" rows="5" maxlength="2048"></textarea></td></tr>'	
-	html += '\n    <tr><td align="left">Location</td><td align="left"><input type="text" id="location" maxlength="255" size="84"></td></tr>'
+	thisCampaign = Campaign.Campaign.getRecord(user_id, campaign_id)
+	print (thisCampaign)
+	if thisCampaign:
+		html += '\n    <tr><td align="left"><h4>ID</h4></td><td align="left"><input value="%s" style="disabled: true;" type="text" id="id" maxlength="255" size="16" readonly></td></tr>' % thisCampaign[0]
+		html += '\n    <tr><td align="left"><h4>Title</h4></td><td align="left"><input value="%s" type="text" id="title" maxlength="255" size="84"></td></tr>' % thisCampaign[1]
+		html += '\n    <tr><td align="left"><h4>Description</h4></td><td align="left"><textarea id="description" cols="80" rows="5" maxlength="2048">%s</textarea></td></tr>' % thisCampaign[2]
+		html += '\n    <tr><td align="left"><h4>Location</h4></td><td align="left"><input value="%s" type="text" id="location" maxlength="255" size="84"></td></tr>' % thisCampaign[3]
+	else:
+		html += '\n    <tr><td align="left"><h4>ID</h4></td><td align="left"><input style="disabled: true;" type="text" id="id" maxlength="255" size="16" readonly></td></tr>'
+		html += '\n    <tr><td align="left"><h4>Title</h4></td><td align="left"><input type="text" id="title" maxlength="255" size="84"></td></tr>'
+		html += '\n    <tr><td align="left"><h4>Description</h4></td><td align="left"><textarea id="description" cols="80" rows="5" maxlength="2048"></textarea></td></tr>'	
+		html += '\n    <tr><td align="left"><h4>Location</h4></td><td align="left"><input type="text" id="location" maxlength="255" size="84"></td></tr>'
 	html += '\n   </tr></table>'
-	html += '\n  </td><td> &nbsp; &nbsp;</td><td>'
-	html += '\n   Runs<br>'
+	html += '\n  </td><td> &nbsp; &nbsp;</td><td valign="top">'
+	html += '\n   <h4>Existing campaigns</h4><br>'
 	html += '\n     <select id="runs" multiple size="">'
-	runs = Run.Run.getRecords(user_id)
-	for run in runs:
-		print (run)
-		id = run[0]
-		date = run[2]
-		media = 'XX'
-		if run[9] == 'youtube':
-			media = 'YT'
-		elif run[9] == 'linkedin':
-			media = 'LI'
-		type = 'X'
-		if run[8]:
-			type = 'iV'
-		elif len(run[5]):
-			type = 'A'
-		elif run[9] == 'youtube':
-			media = 'YT'
-		text = run[4]
-		if len(text) > 40:
-			text = text[:40]
-		html += '\n      <option value="%s">%s-%s %s %s</option>' % (id, media, type, date, text)
+	campaigns = Campaign.Campaign.getRecords(user_id)
+	print (campaigns)
+	for campaign in campaigns:
+		if not campaign[0] == campaign_id:
+			html += '\n      <option value="%s">%s</option>' % (campaign_id, campaign[1])
 	html += '\n     </select>'
-	#html += '\n   <tr><td>ID</td><td>%s</td></tr>' % entry[0]
-	#html += '\n   <tr><td>Description</td><td>%s</td></tr>' % entry[2]
-	#html += '\n   <tr><td>Language</td><td><input type="text" id="language" maxlength="2" size="1" value="%s"/></td></tr>' % entry[10]
-	#html += '\n\  <tr><td><button onclick="submitChanges(\'%s\',\'%s\');" style="color:black;">Submit</button></td></tr>' % (user_id, entry_id)
 	html += '\n </tr>'
 	html += "\n</table>"
 	html += "\n<table border='0'><tr><td><button onclick='submitChanges();' style='background-color: black;'>Add</button></td><td><button onclick='window.location=\'/campaign\'' style='background-color:black;'>Cancel</button></td><td width='80%'></td></tr></table>"
@@ -278,9 +274,13 @@ def runs():
 		languages=data['languages'])
 	return answer[0].encode() # The first report is the runs
 
+@app.route('/runs_campaign/<campaign_id>', methods=['POST'])
+def runs_campaign(campaign_id):
+	answer = Run.Run.getRecordsHTMLTable(1, checks=True, campaign=campaign_id)
+	return answer[0].encode() # The first report is the runs
+
 @app.route('/runs_simple', methods=['POST'])
 def runs_simple():
-	#{'image': False, 'external_text': False, 'internal_video': False, 'external_video': False, 'simple': False, 'original_date_before': False, 'original_date_after': False}
 	answer = Run.Run.getRecordsHTMLTable(1, checks=True)
 	return answer[0].encode() # The first report is the runs
 

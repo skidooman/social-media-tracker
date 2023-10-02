@@ -50,6 +50,12 @@ class Run(Base):
 				"VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')") % (id, user_id, date, date_approx, text.replace('\'', '"'), text_link, image_link, video_link, internal_video, social_media, lang_code)
 			return cls.execute_commands([command])
 
+	# Find runs related to a certain campaign
+	@classmethod
+	def getCampaignRuns(cls, campaign_id):
+		command = "SELECT * FROM runs_to_campaigns WHERE campaign_id = %s" % campaign_id
+		return cls.execute_commands([command], fetching=True)
+
 	@classmethod
 	def getLanguages(cls):
 		command = "SELECT DISTINCT {language} from Runs"
@@ -259,7 +265,7 @@ class Run(Base):
 	#id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media
 	@classmethod
 	def getRecordsHTMLTable(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None,
-		simple=None, original_date_before=None, original_date_after=None, linkedin=False, youtube=False, languages=[], checks=False):
+		simple=None, original_date_before=None, original_date_after=None, linkedin=False, youtube=False, languages=[], checks=False, campaign=None):
 
 		def cleanText(myString):
 			if myString.startswith('<br><br> '):
@@ -295,6 +301,15 @@ class Run(Base):
 		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple,
 			original_date_before, original_date_after, linkedin, youtube, languages)
 
+		# If a campaign ID is provided, then it means we may need to turn on some of the checks
+		# Checks would be turned on if the runs_to_campaigns tables has the two associated
+		campaign_runs = []
+		if campaign:
+			results = cls.getCampaignRuns(campaign)
+			for result in results:
+				campaign_runs.append(result[0])
+
+		print ('here %s' % campaign_runs)
 		##print ('RECORDS: %s' % len(records))
 		#html = '<h2>Records: %s</h2>' % len(records)
 		html = '<div class="table-wrap">\n\t<table class="sortable">'
@@ -347,7 +362,11 @@ class Run(Base):
 			recordNum += 1
 			html += '\n\t\t\t<tr>'
 			if checks:
-				html += '\n\t\t\t<td><input type="checkbox" class="run_check" id="%s" value="%s"></td>' % (recordNum, record[0])
+				if record[0] in campaign_runs:
+					html += '\n\t\t\t<td><input type="checkbox" class="run_check" id="%s" value="%s" checked></td>' % (recordNum, record[0])
+				else:
+					html += '\n\t\t\t<td><input type="checkbox" class="run_check" id="%s" value="%s"></td>' % (recordNum, record[0])
+				
 			if record[9] == 'linkedin':
 				html += '\n\t\t\t\t<td class="num"><a href="https://www.linkedin.com/embed/feed/update/%s" target="_top">%s</a></td>' % (record[0], record[0]) # ID
 			elif record[9] == 'youtube':
@@ -365,7 +384,7 @@ class Run(Base):
 			elif record[6]:
 				html += '\n\t\t\t\t<td><a href="%s" target="_top">Image</a></td>' % record[6]	# Image link
 			elif record[5]:
-				html += '\n\t\t\t\t<td><a href="%s" taget="_top">Article</a></td>' % record[5] # External text
+				html += '\n\t\t\t\t<td><a href="%s" target="_top">Article</a></td>' % record[5] # External text
 			else:
 				html += '\n\t\t\t\t<td>Simple entry</td>'			# Simple
 

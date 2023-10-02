@@ -74,6 +74,12 @@ function edit(user_id, id)
 	window.location.href = url;
 }
 
+function edit_campaign(user_id, id)
+{
+	url = '/edit_campaign/' + user_id + '/' + id;
+	window.location.href = url;
+}
+
 function load(url)
 {
         document.getElementById('main').innerHTML='<h3>Retrieving data, please stand by...</h3>';
