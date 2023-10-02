@@ -259,7 +259,7 @@ class Run(Base):
 	#id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media
 	@classmethod
 	def getRecordsHTMLTable(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None,
-		simple=None, original_date_before=None, original_date_after=None, linkedin=False, youtube=False, languages=[]):
+		simple=None, original_date_before=None, original_date_after=None, linkedin=False, youtube=False, languages=[], checks=False):
 
 		def cleanText(myString):
 			if myString.startswith('<br><br> '):
@@ -300,6 +300,8 @@ class Run(Base):
 		html = '<div class="table-wrap">\n\t<table class="sortable">'
 		html += '\n\t\t<thead>'
 		html += '\n\t\t\t<tr>'
+		if checks:
+			html += '\n\t\t\t<th></th>'
 		html += '\n\t\t\t\t<th><button>ID<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Date<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Text<span aria=hidden="true"></span></button></th>'
@@ -317,23 +319,24 @@ class Run(Base):
 		html += '\n\t\t\t</tr>'
 
 		# Totals
-		views, likes, comments, reposts, displays, minutes = getTotals(user_id, records)
-		html += '\n\t\t\t<tr>'
-		html += '\n\t\t\t\t<th style="background-color: white; color: black;">Records: %s</th>' % len(records)
-		html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
-		html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
-		html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
-		html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
-		html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
-		html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
-		html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % views
-		html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % likes
-		html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % comments
-		html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % reposts
-		html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % displays
-		html += '\n\t\t\t\t<th style="background-color: white; color: black;">%.1f hours</th>' % (minutes/60)
+		if not checks:
+			views, likes, comments, reposts, displays, minutes = getTotals(user_id, records)
+			html += '\n\t\t\t<tr>'
+			html += '\n\t\t\t\t<th style="background-color: white; color: black;">Records: %s</th>' % len(records)
+			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % views
+			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % likes
+			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % comments
+			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % reposts
+			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % displays
+			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%.1f hours</th>' % (minutes/60)
 
-		html += '\n\t\t\t</tr>'
+			html += '\n\t\t\t</tr>'
 
 		html += '\n\t\t</thead>'
 
@@ -343,6 +346,8 @@ class Run(Base):
 		for record in records:
 			recordNum += 1
 			html += '\n\t\t\t<tr>'
+			if checks:
+				html += '\n\t\t\t<td><input type="checkbox" class="run_check" id="%s" value="%s"></td>' % (recordNum, record[0])
 			if record[9] == 'linkedin':
 				html += '\n\t\t\t\t<td class="num"><a href="https://www.linkedin.com/embed/feed/update/%s" target="_top">%s</a></td>' % (record[0], record[0]) # ID
 			elif record[9] == 'youtube':

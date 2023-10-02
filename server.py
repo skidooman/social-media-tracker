@@ -74,7 +74,7 @@ def edit(user_id, entry_id):
 def edit_campaign(user_id, campaign_id):
 	#entry = Campaign..getRecord(user_id, campaign_id)
 	html = head()
-	html += '\n\n<body>\n\n'
+	html += '\n\n<body onload="load(\'/runs_simple\')">\n\n'
 	html += menu()
 	html += "<script>function submitChanges() {"
 	html += "\n var title = document.getElementById('title').value;"
@@ -140,7 +140,8 @@ def edit_campaign(user_id, campaign_id):
 	html += '\n </tr>'
 	html += "\n</table>"
 	html += "\n<table border='0'><tr><td><button onclick='submitChanges();' style='background-color: black;'>Add</button></td><td><button onclick='window.location=\'/campaign\'' style='background-color:black;'>Cancel</button></td><td width='80%'></td></tr></table>"
-	html += '\n</body></html>'
+	html += main()
+	#html += '\n</body></html>'
 	return html
 
 	
@@ -212,8 +213,8 @@ def hash():
 
 def head():
 	html = '<html>'
-	html += '\n<head>\n  <link rel="stylesheet" href="static/sortable-table.css">\n  <script src="static/sortable-table.js"></script>'
-	html += '\n  <script src="static/filter.js"></script><script src="static/utilities.js"></script>'
+	html += '\n<head>\n  <link rel="stylesheet" href="/static/sortable-table.css">\n  <script src="/static/sortable-table.js"></script>'
+	html += '\n  <script src="/static/filter.js"></script><script src="/static/utilities.js"></script>'
 	html += '\n  <style>button { padding: 4px; margin: 1px; font-size: 100%; font-weight: bold; color: white; background: transparent; border: none; width: 100%; text-align: left; outline: none; cursor: pointer;}</style>'
 	html += '\n  <style type="text/css"> .centerDiv { position: fixed; width:500px; height: 500px; margin: 0 auto; top:50%, left: 50%, transform: translate(-50%,-50%); z-index:10; visibility: hidden; background-color:blue; } </style> '
 	html += '\n</head>'
@@ -273,6 +274,12 @@ def runs():
 		simple=data['simple'], original_date_before=data['original_date_before'],
 		original_date_after=data['original_date_after'], linkedin=data['linkedin'], youtube=data['youtube'], 
 		languages=data['languages'])
+	return answer[0].encode() # The first report is the runs
+
+@app.route('/runs_simple', methods=['POST'])
+def runs_simple():
+	#{'image': False, 'external_text': False, 'internal_video': False, 'external_video': False, 'simple': False, 'original_date_before': False, 'original_date_after': False}
+	answer = Run.Run.getRecordsHTMLTable(1, checks=True)
 	return answer[0].encode() # The first report is the runs
 
 @app.route('/submit', methods=['POST'])

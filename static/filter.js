@@ -74,3 +74,26 @@ function edit(user_id, id)
 	window.location.href = url;
 }
 
+function load(url)
+{
+        document.getElementById('main').innerHTML='<h3>Retrieving data, please stand by...</h3>';
+	inputs = document.getElementsByTagName('input');
+	answer = fetch(url, {
+	  method: 'POST',
+	  body: JSON.stringify({
+	  }),
+	  headers: {
+	    'Content-type': 'application/json; charset=UTF-8',
+	  }
+	  })
+	  .then(function(response){
+		 //alert (response.text())
+	  	return response.text();})
+	  .then(function(data)
+	  {console.log(data);
+	   document.getElementById('main').innerHTML =data;
+	   initialize_sortable();
+	   
+	}).catch(error => console.error('Error:', error)); 
+	//alert(answer);
+}
