@@ -88,6 +88,7 @@ def edit_campaign(user_id, campaign_id):
 	html += "\n var title = document.getElementById('title').value;"
 	html += "\nvar runs = document.getElementsByClassName('run_check');"
 	html += "\nvar selected_runs = [];"
+	html += "\n alert(document.getElementById('id').value);"
 	html += "\nfor (var i = 0; i < runs.length; i++){"
 	html += "\n  if (runs[i].checked) selected_runs.push(runs[i].value);"
 	html += "\n}"
@@ -117,7 +118,6 @@ def edit_campaign(user_id, campaign_id):
 	html += '\n  <tr><td>'
 	html += '\n   <table border="0">'
 	thisCampaign = Campaign.Campaign.getRecord(user_id, campaign_id)
-	print (thisCampaign)
 	if thisCampaign:
 		html += '\n    <tr><td align="left"><h4>ID</h4></td><td align="left"><input value="%s" style="disabled: true;" type="text" id="id" maxlength="255" size="16" readonly></td></tr>' % thisCampaign[0]
 		html += '\n    <tr><td align="left"><h4>Title</h4></td><td align="left"><input value="%s" type="text" id="title" maxlength="255" size="84"></td></tr>' % thisCampaign[1]
@@ -133,7 +133,6 @@ def edit_campaign(user_id, campaign_id):
 	html += '\n   <h4>Existing campaigns</h4><br>'
 	html += '\n     <select id="runs" multiple size="">'
 	campaigns = Campaign.Campaign.getRecords(user_id)
-	print (campaigns)
 	for campaign in campaigns:
 		if not campaign[0] == campaign_id:
 			html += '\n      <option value="%s">%s</option>' % (campaign_id, campaign[1])
@@ -294,11 +293,10 @@ def submit():
 def submit_campaign():
 	data = request.json
 	status = None
-	print (data)
 	try:
-		intId = int(data['id'])
+		intId = int(data['campaign_id'])
 		# If we make it here we have already an ID, no need to add
-		status = Campaign.Campaign.update(data['id'], title=data['title'], description=data['description'], location=data['location'], runs=data['runs'])
+		status = Campaign.Campaign.update(data['campaign_id'], title=data['title'], description=data['description'], location=data['location'], runs=data['runs'])
 	except Exception:
 		status = Campaign.Campaign.add(data['user_id'], title=data['title'], description=data['description'], location=data['location'], runs=data['runs'])
 

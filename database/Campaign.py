@@ -22,9 +22,9 @@ class Campaign(Base):
 
 		# Here, we need a second table that associates Runs and Campaigns
 		command = ('CREATE TABLE runs_to_campaigns('
-			'run_id VARCHAR(255) PRIMARY KEY,'
+			'run_id VARCHAR(255),'
 			'campaign_id INT,'
-			'UNIQUE (run_id, campaign_id))')
+			'PRIMARY KEY (run_id, campaign_id))')
 		cls.execute_commands([command]) 
 
 	@classmethod
@@ -128,10 +128,8 @@ class Campaign(Base):
 	@classmethod
 	def update(cls, id, title=None, description=None, location=None, is_subcampaign=None, runs=[]):
 		if not (title or description or location or is_subcampaign or len(runs)):
-			print ('esc')
 			return
 		fields = []
-		print ('in update for id %s' % id)
 		if title:
 			fields.append("title='%s'" % title)
 		if description:
@@ -140,7 +138,6 @@ class Campaign(Base):
 			fields.append("location='%s'" % location)
 		if is_subcampaign:
 			fields.append("is_subcampaign='%s'" % is_subcampaign)
-		print (fields)
 		if len(fields):
 			command = "UPDATE campaigns SET "
 			pos = 0
@@ -153,13 +150,22 @@ class Campaign(Base):
 			command += " WHERE id=%s" % id
 			cls.execute_commands([command])
 		
-		ID = id
+		# Here ID could be an array if doing a new entry or not. Test
+		try:
+			newInt = int(id)
+		except Exception:
+			id = id[0]
+
 		if len(runs):
-			command = "INSERT INTO runs_to_campaigns (run_id, campaign_id) VALUES "
+			# Here we need to first delete previous entries
+			command_del = "DELETE FROM runs_to_campaigns WHERE campaign_id=%s" % id
+			cls.execute_commands([command_del])
+			command = "SELECT * FROM runs_to_campaigns"
+			command_insert = "INSERT INTO runs_to_campaigns (run_id, campaign_id) VALUES "
 			pos = 0
 			for run in runs:
-				command += "('%s', %s)" % (run, id[0]) # No idea why ID should be having more than one value!
+				command_insert += "('%s', %s)" % (run, id) # No idea why ID should be having more than one value!
 				pos += 1
 				if pos < len(runs):
-					command += ", "
-			cls.execute_commands([command])
+					command_insert += ", "
+			cls.execute_commands([command_insert])
