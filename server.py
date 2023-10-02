@@ -78,13 +78,18 @@ def edit_campaign(user_id, campaign_id):
 	html += menu()
 	html += "<script>function submitChanges() {"
 	html += "\n var title = document.getElementById('title').value;"
-	html += "alert(title);"
+	html += "\nvar runs = document.getElementsByClassName('run_check');"
+	html += "\nvar selected_runs = [];"
+	html += "\nfor (var i = 0; i < runs.length; i++){"
+	html += "\n  if (runs[i].checked) selected_runs.push(runs[i].value);"
+	html += "\n}"
 	html += "\n payload = JSON.stringify({" 
 	html += "\n  user_id: %s, " % user_id
 	html += "\n      campaign_id: document.getElementById('id').value,"
 	html += "\n      title: title,"
 	html += "\n      description: document.getElementById('description').value,"
 	html += "\n      location: document.getElementById('location').value,"
+	html += "\n      runs: selected_runs,"
 	html += "\n        });"
 	html += "\n  fetch('/submit_campaign', {"
 	html += "\n    method: 'POST',"
@@ -143,9 +148,6 @@ def edit_campaign(user_id, campaign_id):
 	html += main()
 	#html += '\n</body></html>'
 	return html
-
-	
-
 
 def filters(url):
 	html 	= '<table border="0" width="100%">'
@@ -296,9 +298,9 @@ def submit_campaign():
 	try:
 		intId = int(data['id'])
 		# If we make it here we have already an ID, no need to add
-		status = Campaign.Campaign.update(data['id'], title=data['title'], description=data['description'], location=data['location'])
+		status = Campaign.Campaign.update(data['id'], title=data['title'], description=data['description'], location=data['location'], runs=data['runs'])
 	except Exception:
-		status = Campaign.Campaign.add(data['user_id'], title=data['title'], description=data['description'], location=data['location'])
+		status = Campaign.Campaign.add(data['user_id'], title=data['title'], description=data['description'], location=data['location'], runs=data['runs'])
 
 	return 'Status: %s' % status
 

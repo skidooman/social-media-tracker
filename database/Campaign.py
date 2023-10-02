@@ -30,6 +30,7 @@ class Campaign(Base):
 	@classmethod
 	def add(cls, user_id, title=None, description=None, location=None, is_subcampaign=None, runs=[]):
 		print ("Adding title %s" % title)
+		print ("Runs: %s" % runs)
 		command = ("INSERT INTO campaigns (title, description, location, is_subcampaign, user_id) VALUES (NULL, NULL, NULL, NULL, %s) RETURNING id" % user_id)
 		id = cls.execute_commands([command], fetching=True)[0]
 		cls.update(id=id, title=title, description=description, location=location, is_subcampaign=is_subcampaign, runs=runs)
@@ -100,17 +101,19 @@ class Campaign(Base):
 			languages = []
 			views = 0
 			for run in runs:
-				runRecord = Run.getRecord(user_id, run)
+				runRecord = Run.getRecord(user_id, run[0])
 				if not runRecord[10] in languages:
 					languages.append(runRecord[10])
 				if first_run is None or first_run > runRecord[2]:
 					first_run = runRecord[2]
 				if last_run is None or last_run < runRecord[2]:
 					last_run = runRecord[2]
-				views = dataRecord[-1][3]
+				datapoints = Data.getRecords(user_id, runRecord[0])
+				views += datapoints[-1][3]
 
 			html += '\n\t\t\t\t<td>%s</td>' % first_run
 			html += '\n\t\t\t\t<td>%s</td>' % last_run
+			html += '\n\t\t\t\t<td>'
 			pos = 0
 			for language in languages:
 				html += language
@@ -134,7 +137,7 @@ class Campaign(Base):
 			print ('esc')
 			return
 		fields = []
-		print ('in update')
+		print ('in update for id %s' % id)
 		if title:
 			fields.append("title='%s'" % title)
 		if description:
@@ -157,12 +160,15 @@ class Campaign(Base):
 			print (command)
 			cls.execute_commands([command])
 		
+		print ('here id is %s' % id)
+		ID = id
 		if len(runs):
 			command = "INSERT INTO runs_to_campaigns (run_id, campaign_id) VALUES "
 			pos = 0
 			for run in runs:
-				command += "('%s', %s)" % (run, id)
+				command += "('%s', %s)" % (run, id[0]) # No idea why ID should be having more than one value!
 				pos += 1
 				if pos < len(runs):
 					command += ", "
+			print (command)
 			cls.execute_commands([command])
