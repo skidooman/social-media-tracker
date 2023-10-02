@@ -80,6 +80,14 @@ function edit_campaign(user_id, id)
 	window.location.href = url;
 }
 
+function del_campaign(user_id, id)
+{
+	if(confirm("Deleting ' + id + ' - Are you sure?")){
+		url = '/delete_campaign/' + user_id + '/' + id;
+		window.location.href = url;
+	}
+}
+
 function load(url)
 {
         document.getElementById('main').innerHTML='<h3>Retrieving data, please stand by...</h3>';

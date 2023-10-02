@@ -35,6 +35,12 @@ class Campaign(Base):
 		return id
 
 	@classmethod
+	def deleteRecord(cls, user_id, campaign_id):
+		command1 = "DELETE FROM runs_to_campaigns WHERE campaign_id=%s" % campaign_id
+		command2 = "DELETE FROM campaigns where id=%s" % campaign_id
+		return cls.execute_commands([command1, command2])
+
+	@classmethod
 	def getRecord(cls, user_id, campaign_id):
 		command = "SELECT * FROM campaigns where user_id = %s and id = '%s'" % (user_id, campaign_id)
 		results = cls.execute_commands([command], fetching=True)
@@ -116,7 +122,7 @@ class Campaign(Base):
 					html += ', '
 			html += '</td>'
 			html += '\n\t\t\t\t<td class="num">%s</td>' % views
-			html += '\n\t\t\t\t<td><button id="edit_%s" style="color: black;" onclick="edit_campaign(\'%s\', \'%s\');">Edit</button></td>' % (record[0], user_id, record[0]) 
+			html += '\n\t\t\t\t<td><table border="0"><tr><td><button id="edit_%s" style="color: black;" onclick="edit_campaign(\'%s\', \'%s\');">Edit</button></td><td><button id="del_%s" style="color: black; background-color: transparent;" onclick="del_campaign(\'%s\', \'%s\');">Del</button></td></tr></table></td>' % (record[0], user_id, record[0], record[0], user_id, record[0]) 
 			html += '\n\t\t\t</tr>'
 		
 		html += '\n\t\t</tbody>'

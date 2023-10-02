@@ -19,7 +19,8 @@ def campaign():
 	html += main()
 	return html
 
-@app.route('/campaigns', methods=['POST'])
+#@app.route('/campaigns', methods=['POST'])
+@app.route('/campaigns', methods=['GET', 'POST'])
 def campaigns():
 	'''data = request.json
 	#{'image': False, 'external_text': False, 'internal_video': False, 'external_video': False, 'simple': False, 'original_date_before': False, 'original_date_after': False}
@@ -31,6 +32,11 @@ def campaigns():
 	'''
 	answer = Campaign.Campaign.getRecordsHTMLTable(1)
 	return answer[0].encode() # The first report is the runs
+
+@app.route('/delete_campaign/<user_id>/<campaign_id>')
+def delete_campaign(user_id, campaign_id):
+	Campaign.Campaign.deleteRecord(user_id, campaign_id)
+	return '<html><head><script>window.location.href="/campaign";</script></head><body>Redirecting...</body></html>'
 
 @app.route('/edit/<user_id>/<entry_id>')
 def edit(user_id, entry_id):
@@ -88,7 +94,6 @@ def edit_campaign(user_id, campaign_id):
 	html += "\n var title = document.getElementById('title').value;"
 	html += "\nvar runs = document.getElementsByClassName('run_check');"
 	html += "\nvar selected_runs = [];"
-	html += "\n alert(document.getElementById('id').value);"
 	html += "\nfor (var i = 0; i < runs.length; i++){"
 	html += "\n  if (runs[i].checked) selected_runs.push(runs[i].value);"
 	html += "\n}"
