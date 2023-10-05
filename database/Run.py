@@ -43,7 +43,6 @@ class Run(Base):
 			# What is the language?
 			#lang = TextBlob(text)
 			lang_code = langid.classify(text)[0]
-			print (lang_code)
 			if len(lang_code) > 2:
 				lang_code = lang_code[:1]
 			command = ("INSERT INTO runs (id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media, language)"
@@ -56,7 +55,6 @@ class Run(Base):
 		dict = {}
 		command = "SELECT * FROM runs_to_campaigns"
 		results = cls.execute_commands([command], fetching=True)
-		print (results)
 		for result in results:
 			if result[0] in dict.keys():
 				dict[result[0]].append(result[1])
@@ -131,7 +129,6 @@ class Run(Base):
 
 					elif (entry['date'].endswith('d')):
 						day = int(entry['date'][:-1])
-						print ('DATE: %s - %s' % (entry['date'], date)) 
 						if (day < date.day):
 							date = date.replace(day=date.day-day)
 						else:
@@ -380,9 +377,9 @@ class Run(Base):
 			html += '\n\t\t\t<tr>'
 			if checks:
 				if record[0] in campaign_runs:
-					html += '\n\t\t\t<td><input type="checkbox" class="run_check" id="%s" value="%s" checked></td>' % (recordNum, record[0])
+					html += '\n\t\t\t<td><input type="checkbox" class="run_check" id="%s" value="%s" checked></td>' % (record[0], record[0])
 				else:
-					html += '\n\t\t\t<td><input type="checkbox" class="run_check" id="%s" value="%s"></td>' % (recordNum, record[0])
+					html += '\n\t\t\t<td><input type="checkbox" class="run_check" id="%s" value="%s"></td>' % (record[0], record[0])
 				
 			if record[9] == 'linkedin':
 				html += '\n\t\t\t\t<td class="num"><a href="https://www.linkedin.com/embed/feed/update/%s" target="_top">%s</a></td>' % (record[0], record[0]) # ID
@@ -394,7 +391,7 @@ class Run(Base):
 			html += '\n\t\t\t\t<td>%s</td>' % record[2] # Publication date
 			html += '\n\t\t\t\t<td style="max-width: 200px; overflow:hidden; text-overflow: hidden;" width="200"><div class="expandable" id=\'exp%s\' onclick="toggle(\'exp%s\');" style="max-width:200px; white-space:nowrap; overflow: hidden; text-overflow: ellipsis;">%s</div></td>' % (recordNum, recordNum, cleanText(record[4]))  # Text
 			# Type
-			if record[8]:
+			if record[8] or record[9] == 'youtube':
 				html += '\n\t\t\t\t<td>Internal video</td>' 	# Internal video
 			elif record[7]:
 				html += '\n\t\t\t\t<td><a href="%s" target="_top">External video</a></td>' % record[7] # External video
@@ -445,7 +442,6 @@ class Run(Base):
 			currentCampaigns = ''
 			pos = 0
 			if record[0] in all_campaign_runs.keys():
-				print (all_campaign_runs)
 				for campaign in all_campaign_runs[record[0]]:	
 					currentCampaigns += str(campaign)
 					pos += 1

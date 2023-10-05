@@ -137,9 +137,9 @@ class Campaign(Base):
 			return
 		fields = []
 		if title:
-			fields.append("title='%s'" % title)
+			fields.append("title='%s'" % title.replace("'", "\""))
 		if description:
-			fields.append("description='%s'" % description)
+			fields.append("description='%s'" % description.replace("'", "\""))
 		if location:
 			fields.append("location='%s'" % location)
 		if is_subcampaign:

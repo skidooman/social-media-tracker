@@ -1,6 +1,6 @@
 import os, sys, math
 from flask import Flask, render_template, Response, request
-
+from collections import OrderedDict
 sys.path.append(os.getcwd() + '/database')
 from database import Run, Campaign
 
@@ -134,17 +134,64 @@ def edit_campaign(user_id, campaign_id):
 		html += '\n    <tr><td align="left"><h4>Description</h4></td><td align="left"><textarea id="description" cols="80" rows="5" maxlength="2048"></textarea></td></tr>'	
 		html += '\n    <tr><td align="left"><h4>Location</h4></td><td align="left"><input type="text" id="location" maxlength="255" size="84"></td></tr>'
 	html += '\n   </tr></table>'
-	html += '\n  </td><td> &nbsp; &nbsp;</td><td valign="top">'
-	html += '\n   <h4>Existing campaigns</h4><br>'
-	html += '\n     <select id="runs" multiple size="">'
+	html += '\n  </td><td valign="top"> &nbsp; &nbsp;</td><td valign="top">'
+	
 	campaigns = Campaign.Campaign.getRecords(user_id)
+	# We need fields 0 to be in alphabetical order, but we also need field 1
+	# OrderedDict should be ideal for such a task
+	dict = OrderedDict()
 	for campaign in campaigns:
-		if not campaign[0] == campaign_id:
-			html += '\n      <option value="%s">%s</option>' % (campaign_id, campaign[1])
+		dict[campaign[1]] = campaign[0]
+
+	if None in dict.keys():
+		dict.pop(None)
+
+	keys = sorted(dict.keys())
+
+	html += '\n   <h4>Sub-campaigns</h4>'
+	html += '\n     <select id="" multiple size="4">'        
+	for key in keys:
+		if not dict[key] == campaign_id:
+			html += '\n      <option value="%s">%s</option>' % (dict[key], key)
 	html += '\n     </select>'
+
+	html += '\n   <h4>Select a campaign to edit</h4>'
+	html += '\n     <select id="campaign_selection" multiple size="6">'        
+	for key in keys:
+		if not dict[key] == campaign_id:
+			html += '\n      <option value="%s">%s</option>' % (dict[key], key)
+	html += '\n     </select>'
+
 	html += '\n </tr>'
 	html += "\n</table>"
-	html += "\n<table border='0'><tr><td><button onclick='submitChanges();' style='background-color: black;'>Add</button></td><td><button onclick='window.location=\'/campaign\'' style='background-color:black;'>Cancel</button></td><td width='80%'></td></tr></table>"
+
+	commitWord = 'Add'
+	try:
+		if int(campaign_id) > -1:
+			commitWord = 'Update'
+	except Exception:
+		pass
+
+	html += "\n<table border='0'><tr><td><button id='submit' onclick='submitChanges();' style='background-color: black;'>" + commitWord + "</button></td><td><button onclick='window.location=\'/campaign\'' style='background-color:black;'>Cancel</button></td><td width='80%'></td></tr></table>"
+	
+	# On double click on a campaign to edit ==> populate the menu with the right info
+	html += '\n<script>\ndocument.getElementById("campaign_selection").ondblclick = async function(){'
+	html += '\n  let runs; const result = await fetch("/get_campaign_runs/" + this.value);'
+	html += '\n  runs = await result.json();'
+	html += '\n  let campaign; const result_campaign = await fetch("/get_campaign/%s/" + this.value);' % user_id
+	html += '\n  campaign = await result_campaign.json();'
+	html += '\n  console.log(campaign);'
+	html += '\n  for (var i=0; i < runs.length; i++){'
+	html += '\n     try { var checkbox = document.getElementById(runs[i][0]); checkbox.checked = true; }'
+	html += '\n     catch(e) { console.log(e);}'
+	html += '\n  }'
+	html += '\n document.getElementById("id").value = campaign["campaign"];'
+	html += '\n document.getElementById("title").value = campaign["title"];'
+	html += '\n document.getElementById("description").value = campaign["description"];'
+	html += '\n document.getElementById("location").value = campaign["location"];'
+	html += '\n document.getElementById("submit").innerHTML = "Update"'
+	html += '\n    return runs;'
+	html += '\n}\n</script>'
 	html += main()
 	#html += '\n</body></html>'
 	return html
@@ -193,6 +240,20 @@ def filters(url):
 	html += '\n</tr>'
 	html += '</table>'
 	return html
+
+@app.route('/get_campaign/<user_id>/<campaign_id>')
+def get_campaign(user_id, campaign_id):
+	data = Campaign.Campaign.getRecord(user_id, campaign_id)
+	dict = {}
+	dict['campaign'] = data[0]
+	dict['title'] = data[1]
+	dict['description'] = data[2]
+	dict['location'] = data[3]
+	return dict
+
+@app.route('/get_campaign_runs/<campaign_id>')
+def get_campaign_runs(campaign_id):
+	return Campaign.Campaign.getRuns(campaign_id)
 
 @app.route('/hashes', methods=['POST'])
 def hashes():
