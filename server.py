@@ -1,13 +1,26 @@
 import os, sys, math
-from flask import Flask, render_template, Response, request
+from flask import Flask, flash, redirect, render_template, Response, request
+from werkzeug.utils import secure_filename
 from collections import OrderedDict
 sys.path.append(os.getcwd() + '/database')
-from database import Run, Campaign
+from database import Run, Campaign, Importing
+
+
+UPLOAD_FOLDER = os.getcwd() + '/files'
+ALLOWED_EXTENSIONS = {'htm', 'html'}
 
 # For snapping, we may need to include the path to templates
 templates_dir = 'templates'
 static_dir = 'static'
 app = Flask(__name__, template_folder=templates_dir, static_folder=static_dir)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.secret_key = 'super secret key'
+app.config['SESSION_TYPE'] = 'filesystem'
+
+
+def allowed_file(filename):
+	return '.' in filename and \
+		filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/campaign')
 def campaign():
@@ -288,10 +301,24 @@ def importFunction():
 	html = head()
 	html += '\n\n<body>\n\n'
 	html += menu()
+	html += "<script>function submitFile(media) {"
+	html += "\n var file = document.getElementById(media);"
+	html += "\n var data = new FormData();"
+	html += "\n data.append('file', file.files[0])"
+	html += "\n data.append('user', %s)" % 1
+	html += "\n document.getElementById('linkedin').disabled=true;"
+	html += "\n document.getElementById('youtube').disabled=true;"
+	html += "\n document.getElementById('LI').style.visibility='hidden';"
+	html += "\n document.getElementById('YT').style.visibility='hidden';"
+
+	html += "\n fetch('/upload/' + media, { method:'POST', body: data }).then( response => {if (response.url.endsWith('import') || response.url.endsWith('import/')) alert('Upload FAILED'); else alert('Upload succeeded!');window.location.href=response.url;} );"
+	
+	html += "\n }</script>"
+
 	html += '\n<h2>Import data points</h2>'
 	html += '\n<h4><table border="0">'
-	html += '\n  <tr><td>LinkedIn</td><td><input file type="file" id="linkedin"></td><td><button id="LI" style="color:black;">Upload</button></td></tr>'
-	html += '\n  <tr><td>YouTube</td><td><input file type="file" id="youtube"></td><td><button id="YT" style="color:black;">Upload</button></td></tr>'
+	html += '\n  <tr><td>LinkedIn</td><td><input file type="file" id="linkedin"></td><td><button onclick="submitFile(\'linkedin\')" id="LI" style="color:black;">Upload</button></td></tr>'
+	html += '\n  <tr><td>YouTube</td><td><input file type="file" id="youtube"></td><td><button onclick="submitFile(\'youtube\')" id="YT" style="color:black;">Upload</button></td></tr>'
 	html += '\n</table></h4>'
 	html += "\n</body></html>"
 	return html
@@ -367,6 +394,42 @@ def submit_campaign():
 		status = Campaign.Campaign.add(data['user_id'], title=data['title'], description=data['description'], location=data['location'], runs=data['runs'])
 
 	return 'Status: %s' % status
+
+@app.route('/upload/<media>', methods=['GET', 'POST'])
+def upload_file(media):
+	print ('upload %s' % media)
+	if request.method == 'POST':
+		print (request.data)
+		# check if the post request has the file part
+		if 'file' not in request.files:
+			flash('No file part')
+			return redirect(request.url)
+		file = request.files['file']
+		print (file)
+		# If the user does not select a file, the browser submits an
+		# empty file without a filename.
+		if file.filename == '':
+			flash('No selected file')
+			return redirect(request.url)
+		if file and allowed_file(file.filename):
+			filename = secure_filename(file.filename)
+			file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+			try:
+				if media == 'linkedin':
+					Importing.add_linkedIn(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+				elif media == 'youtube':
+					Importing.add_youtube(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+				flash ('upload successful')
+				return redirect('/')
+			except Exception as e:
+				print (e)
+				flash('Upload failed')
+				return redirect('/import')
+			'''try:
+				Importing.add_linkedIn(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+			except Exception as e:
+				print (e)'''
+	return
 
 # main driver function
 if __name__ == '__main__':

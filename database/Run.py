@@ -125,7 +125,22 @@ class Run(Base):
 							else:
 								date = date.replace(day=31-dayDiff+date.day)
 						else:
-							date = date.replace(date.day-dayDiff)
+							newDay = date.day - dayDiff
+							newMonth = date.month
+							newYear = date.year
+							if newDay <= 0:
+								newMonth -= 1
+								if newMonth == 0:
+									newYear -= 1
+									newMonth = 12
+								newDay = 31
+								if newMonth in [4,6,9,11]:
+									newDay = 30
+								elif newMonth == 2:
+									newDay = 28
+							
+							date = date.replace(year=newYear, month=newMonth, day=newDay)
+							
 
 					elif (entry['date'].endswith('d')):
 						day = int(entry['date'][:-1])

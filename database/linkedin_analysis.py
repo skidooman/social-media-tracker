@@ -77,14 +77,21 @@ def buildDatabase(filename):
 
 	    # Find the type
 	    type = None
+	    article_url = None
 	    article = entry.find('article', {"class": "feed-shared-article"})
+	    if article:
+	        article_url = article.find('a', {'class': "app-aware-link"})['href']
+	    if not article:
+	        # It could be located into another div
+	        article = entry.find('div', {'class': 'update-components-article__link-container'})
+	        if article:
+	           article_url = entry.find('a')['href']
 	    video = entry.find('div', {"class": "video-js"})
 	    external_video = entry.find('a', {"class": "feed-shared-article__image-link"})
 	    if (external_video and (external_video['href'].startswith('https://www.youtube.com') or external_video['href'].startswith('https://youtu.be'))):
 	        video_url = external_video['href']
 	        database.append({'urn':urn, 'date':date, 'impressions':impressions_num, 'type': 'external_video', 'text': articleText, 'tags': tags, 'people': people, 'link_url': video_url, 'comments': comments, 'likes': likes, 'reposts': reposts})
-	    elif (article):
-	        article_url = article.find('a',  {"class": "app-aware-link"})['href']
+	    elif (article_url):
 	        # Save everything to the database
 	        database.append({'urn':urn, 'date':date, 'impressions':impressions_num, 'type': 'article', 'text': articleText, 'tags': tags, 'people': people, 'link_url': article_url, 'comments': comments, 'likes': likes, 'reposts': reposts})
 	    elif (video):
@@ -123,5 +130,3 @@ def saveJSON(database, filename):
 				file.write('},\n')
 				counter += 1
 
-database = buildDatabase('LinkedIn_oct22.html')
-saveJSON(database, 'LinkedIn_oct22.html.json')
