@@ -50,9 +50,40 @@ class Campaign(Base):
 			return []
 
 	@classmethod
-	def getRecords(cls, user_id):
+	#def getRecords(cls, user_id):
+	def getRecords(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None, simple=None,
+                        original_date_before=None, original_date_after=None, linkedin=False, youtube=None, languages=[]):
 		command = "SELECT * FROM campaigns WHERE user_id = %s" % user_id
-		return cls.execute_commands([command], fetching=True)
+		# Do we need to restrict that list?
+		if image or external_text or internal_video or external_video or simple or original_date_before or original_date_after or linkedin or youtube or languages:
+			campaigns = cls.execute_commands([command], fetching=True)
+			all_runs = Run.getRecords(user_id, image, external_text, internal_video, external_video, simple, 
+					original_date_before, original_date_after, linkedin, youtube, languages)
+			runs_to_campaigns = cls.execute_commands(["SELECT * FROM runs_to_campaigns"], fetching=True)
+			final_campaign_list = []
+
+			# First restrict the all runs down to whatever runs are present
+			runs_dict = {}
+			relevant_campaign_ids = []
+			for duo in runs_to_campaigns:
+				if duo[0] in runs_dict.keys():
+					runs_dict[duo[0]].append(duo[1])
+				else:
+					runs_dict[duo[0]] = [duo[1]]
+			for run in all_runs:
+				if run[0] in runs_dict.keys():
+					for campaign_id in runs_dict[run[0]]:
+						if not campaign_id in relevant_campaign_ids:
+							relevant_campaign_ids.append(campaign_id)
+
+			relevant_campaigns = []
+			for campaign in campaigns:
+				if campaign[0] in relevant_campaign_ids:
+					relevant_campaigns.append(campaign)
+			
+			return relevant_campaigns
+		else:
+			return cls.execute_commands([command], fetching=True)
 
 	@classmethod
 	def getRuns(cls, campaign_id):
@@ -62,12 +93,15 @@ class Campaign(Base):
 
 	#id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media
 	@classmethod
-	def getRecordsHTMLTable(cls, user_id):	
-		records = cls.getRecords(user_id)
+	#def getRecordsHTMLTable(cls, user_id):	
+	def getRecordsHTMLTable(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None, simple=None,
+                        original_date_before=None, original_date_after=None, linkedin=False, youtube=None, languages=[]):
+		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple, original_date_before,
+			original_date_after, linkedin, youtube, languages)
 
 		##print ('RECORDS: %s' % len(records))
-		#html = '<h2>Records: %s</h2>' % len(records)
-		html = '<div class="table-wrap">\n\t<table class="sortable">'
+		html = '<h2>Records: %s</h2>' % len(records)
+		html += '<div class="table-wrap">\n\t<table class="sortable">'
 		html += '\n\t\t<thead>'
 		html += '\n\t\t\t<tr>'
 		html += '\n\t\t\t\t<th><button class="num">ID<span aria=hidden="true"></span></button></th>'

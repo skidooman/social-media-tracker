@@ -35,15 +35,15 @@ def campaign():
 #@app.route('/campaigns', methods=['POST'])
 @app.route('/campaigns', methods=['GET', 'POST'])
 def campaigns():
-	'''data = request.json
+	data = request.json
 	#{'image': False, 'external_text': False, 'internal_video': False, 'external_video': False, 'simple': False, 'original_date_before': False, 'original_date_after': False}
-	#answer = Run.Run.getRecordsHTMLTable(1, image=data['image'], external_text=data['external_text'], 
+	answer = Campaign.Campaign.getRecordsHTMLTable(1, image=data['image'], external_text=data['external_text'], 
 		internal_video=data['internal_video'], external_video=data['external_video'], 
 		simple=data['simple'], original_date_before=data['original_date_before'],
 		original_date_after=data['original_date_after'], linkedin=data['linkedin'], youtube=data['youtube'], 
 		languages=data['languages'])
-	'''
-	answer = Campaign.Campaign.getRecordsHTMLTable(1)
+	
+	#answer = Campaign.Campaign.getRecordsHTMLTable(1)
 	return answer[0].encode() # The first report is the runs
 
 @app.route('/delete_campaign/<user_id>/<campaign_id>')
