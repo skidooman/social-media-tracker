@@ -70,5 +70,13 @@ class Data(Base):
 		html += '\n\t</table>'
 		html += '\n</div>'
 		return html
+
+	@classmethod
+        #def update(cls, user_id, id, language):
+	def update(cls, run_id, user_id, date, views, likes, comments, reposts, displays=0, minutes=0):
+                command = "UPDATE Runs SET (views='%s', likes='%s', comments='%s', reposts='%s', displays='%s', minutes='%s') WHERE (user_id='%s' AND run_id='%s' AND date='%s')" % (views, likes, comments, reports, displays, minutes, user_id, run_id, date)
+                print ('running %s' % command)
+                cls.execute_commands([command], fetching=False)
+                return True
 		
 

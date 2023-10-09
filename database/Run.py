@@ -352,11 +352,11 @@ class Run(Base):
 		html += '\n\t\t\t\t<th><button>Media<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Lang<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Last data<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>Views<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>Displays<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Likes<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Comment<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Repost<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>Displays<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th class="num"><button>Viewed<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Minutes<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Campaigns<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th></th>'
@@ -405,6 +405,7 @@ class Run(Base):
 
 			html += '\n\t\t\t\t<td>%s</td>' % record[2] # Publication date
 			html += '\n\t\t\t\t<td style="max-width: 200px; overflow:hidden; text-overflow: hidden;" width="200"><div class="expandable" id=\'exp%s\' onclick="toggle(\'exp%s\');" style="max-width:200px; white-space:nowrap; overflow: hidden; text-overflow: ellipsis;">%s</div></td>' % (recordNum, recordNum, cleanText(record[4]))  # Text
+			
 			# Type
 			if record[8] or record[9] == 'youtube':
 				html += '\n\t\t\t\t<td>Internal video</td>' 	# Internal video
@@ -413,7 +414,10 @@ class Run(Base):
 			elif record[6]:
 				html += '\n\t\t\t\t<td><a href="%s" target="_top">Image</a></td>' % record[6]	# Image link
 			elif record[5]:
-				html += '\n\t\t\t\t<td><a href="%s" target="_top">Article</a></td>' % record[5] # External text
+				if record[5].startswith('https://youtube.com/playlist'):
+					html += '\n\t\t\t\t<td><a href="%s" target="_top">Playlist</a></td>' % record[5] # External text
+				else:
+					html += '\n\t\t\t\t<td><a href="%s" target="_top">Article</a></td>' % record[5] # External text
 			else:
 				html += '\n\t\t\t\t<td>Simple entry</td>'			# Simple
 

@@ -111,7 +111,7 @@ class Campaign(Base):
 		html += '\n\t\t\t\t<th><button>First run<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Last run<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Languages<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button class="num">Views<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th><button class="num">Displays<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th></th>'
 		html += '\n\t\t\t</tr>'
 		html += '\n\t\t</thead>'

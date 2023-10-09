@@ -88,6 +88,10 @@ def buildDatabase(filename):
 	           article_url = entry.find('a')['href']
 	    video = entry.find('div', {"class": "video-js"})
 	    external_video = entry.find('a', {"class": "feed-shared-article__image-link"})
+	    if not external_video:
+	        external_video = entry.find('div', {'class':'external-video-viewer'})
+	        if external_video:
+	           external_video = external_video.find('a')
 	    if (external_video and (external_video['href'].startswith('https://www.youtube.com') or external_video['href'].startswith('https://youtu.be'))):
 	        video_url = external_video['href']
 	        database.append({'urn':urn, 'date':date, 'impressions':impressions_num, 'type': 'external_video', 'text': articleText, 'tags': tags, 'people': people, 'link_url': video_url, 'comments': comments, 'likes': likes, 'reposts': reposts})
