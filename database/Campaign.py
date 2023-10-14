@@ -143,7 +143,10 @@ class Campaign(Base):
 				if last_run is None or last_run < runRecord[2]:
 					last_run = runRecord[2]
 				datapoints = Data.getRecords(user_id, runRecord[0])
-				views += datapoints[-1][3]
+				try:
+					views += datapoints[-1][3]
+				except Exception:
+					pass
 
 			html += '\n\t\t\t\t<td>%s</td>' % first_run
 			html += '\n\t\t\t\t<td>%s</td>' % last_run

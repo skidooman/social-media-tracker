@@ -452,9 +452,10 @@ class Run(Base):
 					html += '\n\t\t\t\t<td class="num">%s</td>' % int(currentPoint[8])
 				except Exception:
 					html += '\n\t\t\t\t<td class="num">-1</td>'
+				pointCovered = 8
 
 			except Exception:
-				while pointsCovered != 9:
+				while pointsCovered != 8:
 					html += '\n\t\t\t\t<td class="num">-1</td>'
 					pointsCovered += 1
 			
