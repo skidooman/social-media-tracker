@@ -107,11 +107,13 @@ class Campaign(Base):
 		html += '\n\t\t\t\t<th><button class="num">ID<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Title<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Description<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button class="num"># Runs<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th style="width:50; max-width:50;"><button class="num"># Runs<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>First run<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Last run<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Languages<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th><button>Media<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button class="num">Displays<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th><button>Path<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th></th>'
 		html += '\n\t\t\t</tr>'
 		html += '\n\t\t</thead>'
@@ -123,19 +125,25 @@ class Campaign(Base):
 			html += '\n\t\t\t<tr>'
 			html += '\n\t\t\t\t<td class="num">%s</td>' % record[0] # Campaign ID
 			html += '\n\t\t\t\t<td>%s</td>' % record[1] # Title
-			html += '\n\t\t\t\t<td style="max-width: 200px; overflow:hidden; text-overflow: hidden;" width="200"><div class="expandable" id=\'exp%s\' onclick="toggle(\'exp%s\');" style="max-width:200px; white-space:nowrap; overflow: hidden; text-overflow: ellipsis;">%s</div></td>' % (record[2], record[2], record[2])
+			html += '\n\t\t\t\t<td style="max-width: 200px; overflow:hidden; text-overflow: hidden;" width="200"><div class="expandable" id=\'exp%s\' onclick="toggle(\'exp%s\');" style="max-width:200px; white-space:nowrap; overflow: hidden; text-overflow: ellipsis;">%s</div></td>' % (recordNum, recordNum, record[2])
 			#html += '\n\t\t\t\t<td>%s</td>' % record[2] # Description
 
 			# Runs
 			runs = cls.getRuns(record[0])
-			html += '\n\t\t\t\t<td class="num">%s</td>' % len(runs)
+			html += '\n\t\t\t\t<td class="num"  style="width:50; max-width:50;">%s</td>' % len(runs)
 
 			first_run = None
 			last_run = None
 			languages = []
+			media = []
+			mediaDict = {'linkedin':'LI', 'youtube':'YT'}
 			views = 0
 			for run in runs:
+				#print (run)
 				runRecord = Run.getRecord(user_id, run[0])
+				#print (runRecord)
+				if not mediaDict[runRecord[9]] in media:
+					media.append(mediaDict[runRecord[9]])
 				if not runRecord[10] in languages:
 					languages.append(runRecord[10])
 				if first_run is None or first_run > runRecord[2]:
@@ -148,6 +156,9 @@ class Campaign(Base):
 				except Exception:
 					pass
 
+			languages.sort()
+			media.sort()
+
 			html += '\n\t\t\t\t<td>%s</td>' % first_run
 			html += '\n\t\t\t\t<td>%s</td>' % last_run
 			html += '\n\t\t\t\t<td>'
@@ -158,9 +169,20 @@ class Campaign(Base):
 				if pos < len(languages):
 					html += ', '
 			html += '</td>'
+			html += '\n\t\t\t\t<td>'
+			pos = 0
+			for medium in media:
+				html += medium
+				pos += 1
+				if pos < len(media):
+					html += ', '
+			html += '</td>'
 			html += '\n\t\t\t\t<td class="num">%s</td>' % views
+			html += '\n\t\t\t\t<td style="max-width: 50px; overflow:hidden; text-overflow: hidden;" width="50"><div class="expandable" id=\'path%s\' onclick="toggle(\'path%s\');" style="max-width:200px; white-space:nowrap; overflow: hidden; text-overflow: ellipsis;">%s</div></td>' % (recordNum, recordNum, record[3])
+			#print (record)
 			html += '\n\t\t\t\t<td><table border="0"><tr><td><button id="edit_%s" style="color: black;" onclick="edit_campaign(\'%s\', \'%s\');">Edit</button></td><td><button id="del_%s" style="color: black; background-color: transparent;" onclick="del_campaign(\'%s\', \'%s\');">Del</button></td></tr></table></td>' % (record[0], user_id, record[0], record[0], user_id, record[0]) 
 			html += '\n\t\t\t</tr>'
+			recordNum += 1
 		
 		html += '\n\t\t</tbody>'
 		html += '\n\t</table>'
