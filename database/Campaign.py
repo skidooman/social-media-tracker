@@ -52,13 +52,13 @@ class Campaign(Base):
 	@classmethod
 	#def getRecords(cls, user_id):
 	def getRecords(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None, simple=None,
-                        original_date_before=None, original_date_after=None, linkedin=False, youtube=None, languages=[]):
+                        original_date_before=None, original_date_after=None, linkedin=False, tiktok=None, youtube=None, languages=[]):
 		command = "SELECT * FROM campaigns WHERE user_id = %s" % user_id
 		# Do we need to restrict that list?
-		if image or external_text or internal_video or external_video or simple or original_date_before or original_date_after or linkedin or youtube or languages:
+		if image or external_text or internal_video or external_video or simple or original_date_before or original_date_after or linkedin or youtube or tiktok or languages:
 			campaigns = cls.execute_commands([command], fetching=True)
 			all_runs = Run.getRecords(user_id, image, external_text, internal_video, external_video, simple, 
-					original_date_before, original_date_after, linkedin, youtube, languages)
+					original_date_before, original_date_after, linkedin, tiktok, youtube, languages)
 			runs_to_campaigns = cls.execute_commands(["SELECT * FROM runs_to_campaigns"], fetching=True)
 			final_campaign_list = []
 
@@ -95,9 +95,9 @@ class Campaign(Base):
 	@classmethod
 	#def getRecordsHTMLTable(cls, user_id):	
 	def getRecordsHTMLTable(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None, simple=None,
-                        original_date_before=None, original_date_after=None, linkedin=False, youtube=None, languages=[]):
+                        original_date_before=None, original_date_after=None, linkedin=False, tiktok=None, youtube=None, languages=[]):
 		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple, original_date_before,
-			original_date_after, linkedin, youtube, languages)
+			original_date_after, linkedin, tiktok, youtube, languages)
 
 		##print ('RECORDS: %s' % len(records))
 		html = '<h2>Records: %s</h2>' % len(records)
@@ -136,7 +136,7 @@ class Campaign(Base):
 			last_run = None
 			languages = []
 			media = []
-			mediaDict = {'linkedin':'LI', 'youtube':'YT'}
+			mediaDict = {'linkedin':'LI', 'tiktok':'TT', 'youtube':'YT'}
 			views = 0
 			for run in runs:
 				#print (run)

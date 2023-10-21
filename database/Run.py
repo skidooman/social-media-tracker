@@ -189,7 +189,7 @@ class Run(Base):
 
 	@classmethod
 	def getRecords(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None, simple=None,
-			original_date_before=None, original_date_after=None, linkedin=False, youtube=None, languages=[]):
+			original_date_before=None, original_date_after=None, linkedin=False, tiktok=None, youtube=None, languages=[]):
 		command = "SELECT * FROM runs WHERE user_id = %s" % user_id
 
 		def getExternals(target):
@@ -259,12 +259,14 @@ class Run(Base):
 			command += " AND publication_date > '%s'" % original_date_after
 
 		# Media restrictions
-		if not linkedin and not youtube:
+		if not linkedin and not tiktok and not youtube:
 			pass
 		else:
 			keywords = []
 			if linkedin:
 				keywords.append('linkedin')
+			if tiktok:
+				keywords.append('tiktok')
 			if youtube:
 				keywords.append('youtube')
 			
@@ -293,7 +295,7 @@ class Run(Base):
 	#id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media
 	@classmethod
 	def getRecordsHTMLTable(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None,
-		simple=None, original_date_before=None, original_date_after=None, linkedin=False, youtube=False, languages=[], checks=False, campaign=None):
+		simple=None, original_date_before=None, original_date_after=None, linkedin=False, tiktok=None, youtube=False, languages=[], checks=False, campaign=None):
 
 		def cleanText(myString):
 			if myString.startswith('<br><br> '):
@@ -326,7 +328,7 @@ class Run(Base):
 			return views, likes, comments, reposts, displays, minutes
 		
 		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple,
-			original_date_before, original_date_after, linkedin, youtube, languages)
+			original_date_before, original_date_after, linkedin, tiktok, youtube, languages)
 
 		# Get the most recent date for LinkedIn
 		linkedIn_mostRecentDate = datetime.datetime.strptime('1970-01-01', '%Y-%m-%d').date()
@@ -415,7 +417,7 @@ class Run(Base):
 			elif record[9] == 'youtube':
 				html += '\n\t\t\t\t<td class="num"><a href="https://www.youtube.com/watch?v=%s" target="_top">%s</a></td>' % (record[0], record[0]) # ID				
 			else:
-				html += '\n\t\t\t\t<td class="num">%s</td>' % record[0] # ID
+				html += '\n\t\t\t\t<td class="num">%s</td>' % record[0] # ID - default for TikTok
 
 			html += '\n\t\t\t\t<td>%s</td>' % record[2] # Publication date
 			html += '\n\t\t\t\t<td style="max-width: 200px; overflow:hidden; text-overflow: hidden;" width="200"><div class="expandable" id=\'exp%s\' onclick="toggle(\'exp%s\');" style="max-width:200px; white-space:nowrap; overflow: hidden; text-overflow: ellipsis;">%s</div></td>' % (recordNum, recordNum, cleanText(record[4]))  # Text
@@ -453,7 +455,7 @@ class Run(Base):
 				pointsCovered = 3
 				if len(points) > 1:
 					diff = int(currentPoint[3]) - int(points[len(points)-2][3])
-					if record[9] == 'youtube' or (record[9] == 'linkedin' and currentPoint[2] == linkedIn_mostRecentDate):
+					if record[9] == 'youtube' or record[9] =='tiktok' or (record[9] == 'linkedin' and currentPoint[2] == linkedIn_mostRecentDate):
 						html += '\n\t\t\t\t<td class="num" style="color: darkGreen;">%s</td>' % diff
 					else:
 						html += '\n\t\t\t\t<td class="num" style="color: red;">%s</td>' % diff
@@ -526,6 +528,8 @@ class Run(Base):
 			for word in words:
 				if len(word) and word[0] == '#':
 					hash = word[1:]
+					if len(hash) == 0:
+						continue
 					if not hash[0] in capitalLetters:
 						for char in range(1, len(hash)):
 							if hash[char] in capitalLetters:

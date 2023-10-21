@@ -10,6 +10,7 @@ function filter(url)
         var original_date_before = false;
         var original_date_after= false;
 	var linkedin = false;
+	var tiktok = false;
 	var youtube = false;
 	var languages = [];
 
@@ -23,6 +24,7 @@ function filter(url)
 	if (start.length) original_date_before=start;	
 	if (end.length) original_date_after=end;	
 	if (document.getElementById('linkedin').checked) linkedin=true;
+	if (document.getElementById('tiktok').checked) tiktok=true;
 	if (document.getElementById('youtube').checked) youtube=true;
 
 	inputs = document.getElementsByTagName('input');
@@ -49,6 +51,7 @@ function filter(url)
 		original_date_before: original_date_before, 
 		original_date_after: original_date_after,
 		linkedin: linkedin,
+		tiktok: tiktok,
 		youtube: youtube,
 		languages: languages,
 	  }),

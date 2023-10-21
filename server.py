@@ -40,8 +40,8 @@ def campaigns():
 	answer = Campaign.Campaign.getRecordsHTMLTable(1, image=data['image'], external_text=data['external_text'], 
 		internal_video=data['internal_video'], external_video=data['external_video'], 
 		simple=data['simple'], original_date_before=data['original_date_before'],
-		original_date_after=data['original_date_after'], linkedin=data['linkedin'], youtube=data['youtube'], 
-		languages=data['languages'])
+		original_date_after=data['original_date_after'], linkedin=data['linkedin'], tiktok=data['tiktok'], 
+		youtube=data['youtube'], languages=data['languages'])
 	
 	#answer = Campaign.Campaign.getRecordsHTMLTable(1)
 	return answer[0].encode() # The first report is the runs
@@ -226,6 +226,7 @@ def filters(url):
 	html += '\n  </h4></td>'
 	html += '\n  <td valign="top"><h4>Media<br>'
 	html += '\n    <input type="checkbox" id="linkedin" name="linkedin" value="linkedin"><label for="linkedin">LinkedIn<br>'
+	html += '\n    <input type="checkbox" id="tiktok" name="tiktok" value="tiktok"><label for="tiktok">TikTok<br>'	
 	html += '\n    <input type="checkbox" id="youtube" name="youtube" value="youtube"><label for="youtube">YouTube<br>'	
 	html += '\n  </h4></td>'
 	languages = Run.Run.getLanguages()
@@ -275,7 +276,7 @@ def hashes():
 	answer = Run.Run.getRecordsHTMLTable(1, image=data['image'], external_text=data['external_text'], 
 		internal_video=data['internal_video'], external_video=data['external_video'], 
 		simple=data['simple'], original_date_before=data['original_date_before'],
-		original_date_after=data['original_date_after'], linkedin=data['linkedin'], youtube=data['youtube'])
+		original_date_after=data['original_date_after'], linkedin=data['linkedin'], tiktok=data['tiktok'], youtube=data['youtube'])
 	return answer[1].encode() # The second report is the hashes
 
 @app.route('/hash')
@@ -306,9 +307,11 @@ def importFunction():
 	html += "\n var data = new FormData();"
 	html += "\n data.append('file', file.files[0])"
 	html += "\n data.append('user', %s)" % 1
-	html += "\n document.getElementById('linkedin').disabled=true;"
+	html += "\n document.getElementById('linkedin').disabled=true;"	
+	html += "\n document.getElementById('tiktok').disabled=true;"
 	html += "\n document.getElementById('youtube').disabled=true;"
 	html += "\n document.getElementById('LI').style.visibility='hidden';"
+	html += "\n document.getElementById('TT').style.visibility='hidden';"
 	html += "\n document.getElementById('YT').style.visibility='hidden';"
 
 	html += "\n fetch('/upload/' + media, { method:'POST', body: data }).then( response => {if (response.url.endsWith('import') || response.url.endsWith('import/')) alert('Upload FAILED'); else alert('Upload succeeded!');window.location.href=response.url;} );"
@@ -318,6 +321,7 @@ def importFunction():
 	html += '\n<h2>Import data points</h2>'
 	html += '\n<h4><table border="0">'
 	html += '\n  <tr><td>LinkedIn</td><td><input file type="file" id="linkedin"></td><td><button onclick="submitFile(\'linkedin\')" id="LI" style="color:black;">Upload</button></td></tr>'
+	html += '\n  <tr><td>TikTok</td><td><input file type="file" id="tiktok"></td><td><button onclick="submitFile(\'tiktok\')" id="TT" style="color:black;">Upload</button></td></tr>'
 	html += '\n  <tr><td>YouTube</td><td><input file type="file" id="youtube"></td><td><button onclick="submitFile(\'youtube\')" id="YT" style="color:black;">Upload</button></td></tr>'
 	html += '\n</table></h4>'
 	html += "\n</body></html>"
@@ -362,8 +366,8 @@ def runs():
 	answer = Run.Run.getRecordsHTMLTable(1, image=data['image'], external_text=data['external_text'], 
 		internal_video=data['internal_video'], external_video=data['external_video'], 
 		simple=data['simple'], original_date_before=data['original_date_before'],
-		original_date_after=data['original_date_after'], linkedin=data['linkedin'], youtube=data['youtube'], 
-		languages=data['languages'])
+		original_date_after=data['original_date_after'], linkedin=data['linkedin'], tiktok=data['tiktok'],
+		youtube=data['youtube'], languages=data['languages'])
 	return answer[0].encode() # The first report is the runs
 
 @app.route('/runs_campaign/<campaign_id>', methods=['POST'])
@@ -417,6 +421,8 @@ def upload_file(media):
 			try:
 				if media == 'linkedin':
 					Importing.add_linkedIn(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+				elif media == 'tiktok':
+					Importing.add_tiktok(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 				elif media == 'youtube':
 					Importing.add_youtube(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 				flash ('upload successful')

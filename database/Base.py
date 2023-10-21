@@ -59,7 +59,7 @@ class Base:
 			# connect to the PostgreSQL server
 			conn = psycopg2.connect(**params)
 			cur = conn.cursor()
-			cur.execute('SELECT EXISTS(SELECT 1 FROM %s WHERE id=CAST(%s as VarChar))' % (name_table, id))
+			cur.execute('SELECT EXISTS(SELECT 1 FROM %s WHERE id=CAST("%s" as VarChar))' % (name_table, id))
 			status = cur.fetchone()
 			return status[0]
 

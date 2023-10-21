@@ -5,6 +5,8 @@ from Campaign import Campaign
 import sys, os, time
 from linkedin_analysis import buildDatabase as LI_Database
 from linkedin_analysis import saveJSON as LI_save_json
+from tiktok_analysis import augmentDict as TT_Database
+from tiktok_analysis import saveJSON as TT_save_json
 from youtube_analysis import buildDatabase as YT_Database
 from youtube_analysis import saveJSON as YT_save_json
 
@@ -19,9 +21,16 @@ def add_linkedIn(filename):
 		timestamp = time.strftime("%Y-%m-%d", time.strptime(time.ctime(myTime)))
 		Run.importFile(1, 'linkedin', timestamp, "%s.json" % filename) 
 
+def add_tiktok(filename):
+	database = TT_Database(filename)
+	print (database)
+	TT_save_json(database, '%s.json' % filename)
+	myTime = os.path.getmtime(filename)
+	timestamp = time.strftime("%Y-%m-%d", time.strptime(time.ctime(myTime)))
+	Run.importFile(1, 'tiktok', timestamp, "%s.json" % filename) 
+
 def add_youtube(filename):
 	database = YT_Database(filename)
-	print (database)
 	YT_save_json(database, '%s.json' % filename)
 	myTime = os.path.getmtime(filename)
 	timestamp = time.strftime("%Y-%m-%d", time.strptime(time.ctime(myTime)))
