@@ -22,7 +22,7 @@ input('First log in to LinkedIn, then press any key')
 #search.send_keys(Keys.RETURN)
 
 driver.get('https://www.linkedin.com/in/steve-barriault/recent-activity/all/')
-
+time.sleep(7)
 
 SCROLL_PAUSE_TIME = 2
 

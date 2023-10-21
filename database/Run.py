@@ -6,6 +6,8 @@ import json, datetime
 from Data import Data
 #from textblob import TextBlob
 import langid
+from dateutil.relativedelta import relativedelta
+
 
 class Run(Base):
 	name_of_table = 'runs'
@@ -322,10 +324,18 @@ class Run(Base):
 				except Exception:
 					break
 			return views, likes, comments, reposts, displays, minutes
-				
-
+		
 		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple,
 			original_date_before, original_date_after, linkedin, youtube, languages)
+
+		# Get the most recent date for LinkedIn
+		linkedIn_mostRecentDate = datetime.datetime.strptime('1970-01-01', '%Y-%m-%d').date()
+		for record in records:
+			if record[9] == 'linkedin':
+				points = Data.getRecords(user_id, record[0])
+				for point in points:
+					if point[2] > linkedIn_mostRecentDate:
+						linkedIn_mostRecentDate = point[2]
 
 		# If a campaign ID is provided, then it means we may need to turn on some of the checks
 		# Checks would be turned on if the runs_to_campaigns tables has the two associated
@@ -353,11 +363,13 @@ class Run(Base):
 		html += '\n\t\t\t\t<th><button>Lang<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Last data<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Displays<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t\<th class="num"><button>Swing<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Likes<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Comment<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Repost<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Viewed<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th class="num"><button>Minutes<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th><button>Dead?<span area=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Campaigns<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th></th>'
 		html += '\n\t\t\t</tr>'
@@ -374,12 +386,14 @@ class Run(Base):
 			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
 			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
 			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % views
+			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
 			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % likes
 			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % comments
 			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % reposts
 			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % displays
 			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%.1f hours</th>' % (minutes/60)
-			html += '\n\t\t\t\t<th></th>'
+			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
 			html += '\n\t\t\t</tr>'
 
 		html += '\n\t\t</thead>'
@@ -437,6 +451,14 @@ class Run(Base):
 				pointsCovered = 2
 				html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[3]
 				pointsCovered = 3
+				if len(points) > 1:
+					diff = int(currentPoint[3]) - int(points[len(points)-2][3])
+					if record[9] == 'youtube' or (record[9] == 'linkedin' and currentPoint[2] == linkedIn_mostRecentDate):
+						html += '\n\t\t\t\t<td class="num" style="color: darkGreen;">%s</td>' % diff
+					else:
+						html += '\n\t\t\t\t<td class="num" style="color: red;">%s</td>' % diff
+				else:
+					html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[3]
 				html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[4]
 				pointsCovered = 4
 				html += '\n\t\t\t\t<td class="num">%s</td>' % currentPoint[5]
@@ -453,11 +475,23 @@ class Run(Base):
 				except Exception:
 					html += '\n\t\t\t\t<td class="num">-1</td>'
 				pointCovered = 8
+				try:
+					isMostRecentDate = "No"
+					eighteenMonths = datetime.datetime.now() - relativedelta(months=9)
+					if record[9] == 'linkedin' and currentPoint[2] < linkedIn_mostRecentDate and currentPoint[2] < eighteenMonths.date():
+						isMostRecentDate = "yes"
+					html += '\n\t\t\t\t<td>%s</td>' % isMostRecentDate
+				except Exception as e:
+					print (e)
+					html += '\n\t\t\t\t<td></td>'
+				pointCovered = 9
 
-			except Exception:
-				while pointsCovered != 8:
+			except Exception as e:
+				print (e)
+				while pointsCovered != 9:
 					html += '\n\t\t\t\t<td class="num">-1</td>'
 					pointsCovered += 1
+
 			
 			currentCampaigns = ''
 			pos = 0
