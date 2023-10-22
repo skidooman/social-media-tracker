@@ -5,6 +5,7 @@ from Base import Base
 from Data import Data
 from Run import Run
 import json, datetime
+from dateutil.relativedelta import relativedelta
 
 class Campaign(Base):
 	name_of_table = 'campaigns'
@@ -84,6 +85,70 @@ class Campaign(Base):
 			return relevant_campaigns
 		else:
 			return cls.execute_commands([command], fetching=True)
+	
+	@classmethod
+	def getRerunRecommendations(cls, user_id):
+		# First get all campaigns
+		campaigns = cls.getRecords(user_id)
+		linkedIn_deadline = datetime.datetime.now() - relativedelta(year=1, month=6)
+		recommendations = {'linkedin':[], 'tiktok':[], 'youtube':[]}
+		for campaign in campaigns:
+			languageDict = {}
+			mediaDict = {}
+			runs = cls.getRuns(campaign[0])
+			for run in runs:
+				runDetails = Run.getRecord(user_id, run[0])
+				if not(runDetails[8] or runDetails[9]):
+					continue
+				if runDetails[10] in languageDict.keys():
+					if runDetails[9] not in languageDict[runDetails[10]]:
+						languageDict[runDetails[10]].append(runDetails[9])
+				else:
+					languageDict[runDetails[10]] = [runDetails[9]]
+				if runDetails[9] in mediaDict.keys():
+					if runDetails[10] not in mediaDict[runDetails[9]]:
+						mediaDict[runDetails[9]].append(runDetails[10])
+				else:
+					mediaDict[runDetails[9]] = [runDetails[10]]
+
+				if runDetails[9] == 'linkedin' and runDetails[2] < linkedIn_deadline.date():
+					recommendations[runDetails[9]].append({'campaign':campaign[0], 'title':campaign[1], 'msg':'Rerun candidate (%s)' % runDetails[10], 'language':[runDetails[10]]})
+
+			for medium in recommendations.keys():
+				# Case 1: Missing video on one media
+				if medium not in mediaDict.keys():
+					recommendations[medium].append({'campaign':campaign[0], 'title':campaign[1], 'msg':'New run', 'language':languageDict.keys()})
+				# Case 2: Media exist but not in all languages
+				else:
+					for lang in languageDict.keys():
+						if not lang in mediaDict[medium]:
+							recommendations[medium].append({'campaign':campaign[0], 'title':campaign[1], 'msg':'New language (%s)' % lang, 'language':[lang]}) 
+		return recommendations
+
+	@classmethod
+	def getRerunRecommendationsHTML(cls, user_id):
+		recommendations = cls.getRerunRecommendations(user_id)
+		html = ''
+		for medium in recommendations.keys():
+			html += '<h2>Medium: %s</h2>' % medium 
+			html += '<div class="table-wrap">\n\t<table class="sortable">'
+			html += '\n\t\t<thead>'
+			html += '\n\t\t\t<tr>'
+			html += '\n\t\t\t\t<th><button>Campaign ID<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Title<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Message<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Language<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t</tr>'
+			html += '\n\t\t</thead>'
+			html += '\n\t\t<tbody>'
+			for recommendation in recommendations[medium]:
+				for lang in recommendation['language']:
+					html += '\n\t\t\t<tr>'
+					html += '\n\t\t\t\t<td>%s</td><td>%s</td><td>%s</td><td>%s</td>' % (recommendation['campaign'], recommendation['title'], recommendation['msg'], lang)
+					html += '\n\t\t\t</tr>'
+			html += '\n\t\t</tbody>'
+			html += '\n\t</table>'
+		return html
 
 	@classmethod
 	def getRuns(cls, campaign_id):

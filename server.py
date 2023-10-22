@@ -351,12 +351,23 @@ def menu():
 	html += '\n  <td width="25%"><h2 style="color: white;">Social Media Tracker</h2></td>'
 	html += '\n  <td><button onclick="window.location.href=\'/\';"><h3 style="color:white; background: transparent; border: none;">Runs</h3></button></td>'
 	html += '\n  <td><button onclick="window.location.href=\'/hash\';"><h3 style="color:white; background: transparent;">Hashes</h3></button></td>'
-	html += '\n  <td><button onclick="window.location.href=\'/import\';"><h3 style="color:white; background: transparent;">Import</h3></button></td>'
 	html += '\n  <td><button onclick="window.location.href=\'/campaign\';"><h3 style="color:white; background: transparent;">Campaign</h3></button></td>'
+	html += '\n  <td><button onclick="window.location.href=\'/reruns\';"><h3 style="color:white; background: transparent;">Reruns</h3></button></td>'
+	html += '\n  <td><button onclick="window.location.href=\'/import\';"><h3 style="color:white; background: transparent;">Import</h3></button></td>'
 	html += '\n  <td width="75%">&nbsp;</td>'
 	html += '\n</tr>'
 	html += '</table>'
 	return html
+
+@app.route('/reruns')
+def reruns():
+	html = head()
+	html += '\n\n<body>\n\n'
+	html += menu()
+	html += Campaign.Campaign.getRerunRecommendationsHTML(1)
+	html += '</body></html>'
+	return html
+
 
 
 @app.route('/runs', methods=['POST'])

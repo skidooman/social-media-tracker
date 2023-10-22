@@ -66,6 +66,8 @@ if __name__ == "__main__":
 	if sys.argv[1] == 'init':
 		init()
 		getRecords()
+	elif sys.argv[1] == 'reruns':
+		Campaign.getRerunRecommendations(1)
 	elif sys.argv[1] == 'add_LI':
 		add_linkedIn(sys.argv[2])
 	elif sys.argv[1] == 'add_YT':
