@@ -28,7 +28,7 @@ def buildDatabase(filename):
 				database['date'] = datetime.datetime.now().strftime("%Y-%m-%d")
 			
 			# Views
-			database['views'] = entry[7]
+			database['views'] = entry[6]
 
 			# Time
 			myTime = 0
@@ -40,7 +40,10 @@ def buildDatabase(filename):
 			database['minutes'] = minutes
 
 			# Displays
-			database['displays'] = int(entry[3])
+			try:
+				database['displays'] = int(entry[3])
+			except Exception as e:
+				database['displays'] = 0
 			print ('append %s' % database)
 			overall_database.append(database)
 

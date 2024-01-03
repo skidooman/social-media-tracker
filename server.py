@@ -3,11 +3,12 @@ from flask import Flask, flash, redirect, render_template, Response, request
 from werkzeug.utils import secure_filename
 from collections import OrderedDict
 sys.path.append(os.getcwd() + '/database')
-from database import Run, Campaign, Importing
+from database import Run, Campaign, Importing, Artifact
 
 
 UPLOAD_FOLDER = os.getcwd() + '/files'
 ALLOWED_EXTENSIONS = {'htm', 'html'}
+YT_ALLOWED_EXTENSIONS = {'csv'}
 
 # For snapping, we may need to include the path to templates
 templates_dir = 'templates'
@@ -18,9 +19,12 @@ app.secret_key = 'super secret key'
 app.config['SESSION_TYPE'] = 'filesystem'
 
 
-def allowed_file(filename):
+def allowed_file(filename, media):
+	allowed_extensions = ALLOWED_EXTENSIONS
+	if media == 'youtube':
+		allowed_extensions = YT_ALLOWED_EXTENSIONS
 	return '.' in filename and \
-		filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+		filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 @app.route('/campaign')
 def campaign():
@@ -131,7 +135,27 @@ def edit_campaign(user_id, campaign_id):
 	html += "\n  .then(function(data)"
 	html += "\n    {console.log(data);"
 	html += "\n    }).catch(error => console.error('Error:', error))"
-	html += "\n }</script>"
+	html += "\n }\n"
+	html += '\n    var languageMsg = "Please provide a valid two-letter language code (lower case)";'
+	html += '\n    var minsMsg = "Please provide a valid time in minutes or leave empty";'
+	html += '\n    var secsMsg = "Please provide a valid time in seconds";'
+	html += "\n  function add_artifact() {"
+	html += "\n    var table = document.getElementById('artifacts');"
+	html += "\n    var row = table.insertRow(1);"
+	html += "\n    var id = row.insertCell(0);"
+	html += "\n    var orientation = row.insertCell(1);"
+	html += "\n    var language = row.insertCell(2);"
+	html += "\n    var mins = row.insertCell(3);"
+	html += '\n    var secs = row.insertCell(4);'
+	html += '\n    var remove = row.insertCell(5);'
+	html += '\n    orientation.innerHTML = "<select id=\'new_artifact_orientation\'><option value=\'vertical\'>Vertical</option><option value=\'horizontal\' selected>Horizontal</option></select>";'
+	html += '\n    language.innerHTML = "<input type=\'text\' id=\'new_artifact_language\' size=\'2\' number=\'2\' pattern=\'[a-z]{2}\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(languageMsg)\'/>";'
+	html += '\n    mins.innerHTML = "<input type=\'text\' id=\'new_artifact_mins\' size=\'3\' number=\'3\' pattern=\'[0-9]*\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(minsMsg)\'/>";'
+	html += '\n    secs.innerHTML = "<input type=\'text\' id=\'new_artifact_secs\' size=\'3\' number=\'3\' pattern=\'[0-9]+\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(secsMsg)\'/>";'
+	html += '\n    remove.innerHTML = "<td><button style=\'color:black;\'>X</button></td>";'
+	html += "\n}"
+	html += "\n</script>"
+
 	html += "\n<table border='0'>"
 	html += '\n  <tr><td>'
 	html += '\n   <table border="0">'
@@ -161,12 +185,12 @@ def edit_campaign(user_id, campaign_id):
 
 	keys = sorted(dict.keys())
 
-	html += '\n   <h4>Sub-campaigns</h4>'
+	'''html += '\n   <h4>Sub-campaigns</h4>'
 	html += '\n     <select id="" multiple size="4">'        
 	for key in keys:
 		if not dict[key] == campaign_id:
 			html += '\n      <option value="%s">%s</option>' % (dict[key], key)
-	html += '\n     </select>'
+	html += '\n     </select>' '''
 
 	html += '\n   <h4>Select a campaign to edit</h4>'
 	html += '\n     <select id="campaign_selection" multiple size="6">'        
@@ -174,6 +198,10 @@ def edit_campaign(user_id, campaign_id):
 		if not dict[key] == campaign_id:
 			html += '\n      <option value="%s">%s</option>' % (dict[key], key)
 	html += '\n     </select>'
+
+	html += '\n   <h4>Video artifacts                  '
+	html += '\n   <button id="add_artifact" onclick="add_artifact();" style="background-color: black; width: 100px;">Add artifact</button></h4>'
+	html += Artifact.Artifact.getExistingArtifactsTable()
 
 	html += '\n </tr>'
 	html += "\n</table>"
@@ -313,7 +341,6 @@ def importFunction():
 	html += "\n document.getElementById('LI').style.visibility='hidden';"
 	html += "\n document.getElementById('TT').style.visibility='hidden';"
 	html += "\n document.getElementById('YT').style.visibility='hidden';"
-
 	html += "\n fetch('/upload/' + media, { method:'POST', body: data }).then( response => {if (response.url.endsWith('import') || response.url.endsWith('import/')) alert('Upload FAILED'); else alert('Upload succeeded!');window.location.href=response.url;} );"
 	
 	html += "\n }</script>"
@@ -410,31 +437,39 @@ def submit_campaign():
 
 	return 'Status: %s' % status
 
-@app.route('/upload/<media>', methods=['GET', 'POST'])
+@app.route('/upload/<media>', methods=['POST', 'GET'])
 def upload_file(media):
 	print ('upload %s' % media)
+	print (request.method)
 	if request.method == 'POST':
+		print ('request data is')
 		print (request.data)
 		# check if the post request has the file part
 		if 'file' not in request.files:
 			flash('No file part')
 			return redirect(request.url)
 		file = request.files['file']
+		print ('file is')
 		print (file)
 		# If the user does not select a file, the browser submits an
 		# empty file without a filename.
 		if file.filename == '':
 			flash('No selected file')
 			return redirect(request.url)
-		if file and allowed_file(file.filename):
+		if file and allowed_file(file.filename, media):
+			print ('allowed file')
 			filename = secure_filename(file.filename)
+			print ('filename: %s' % filename)
 			file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+			print ('file save ok')
 			try:
 				if media == 'linkedin':
+					print ('calling add_linkedIn')
 					Importing.add_linkedIn(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 				elif media == 'tiktok':
 					Importing.add_tiktok(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 				elif media == 'youtube':
+					print ('in youtube')
 					Importing.add_youtube(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 				flash ('upload successful')
 				return redirect('/')
@@ -446,7 +481,7 @@ def upload_file(media):
 				Importing.add_linkedIn(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 			except Exception as e:
 				print (e)'''
-	return
+	return "ERROR"
 
 # main driver function
 if __name__ == '__main__':

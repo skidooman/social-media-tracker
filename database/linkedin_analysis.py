@@ -1,7 +1,6 @@
-
+from datetime import datetime
 from collections import OrderedDict
 from bs4 import BeautifulSoup
-
 
 def buildDatabase(filename):
 	database = []
@@ -11,28 +10,39 @@ def buildDatabase(filename):
 
 	# Entries are all the posts
 	entries = soup.find_all("div", {"class": "feed-shared-update-v2"})
-
+	#print ('entries: %s' % entries)
+	counter = 0
 	for entry in entries:
+	    counter += 1
 	    # Find the URN
 	    urn = str(entry['data-urn']).split(':')[-1]
-
 	    # Find the Impressions
-	    impressions = entry.find('span', {"class": "ca-entry-point__num-views"})
-	    if impressions is None:
-	       print ('skipped')
+	    try: 
+	       impressions = entry.find('span', {"class": "ca-entry-point__num-views"})
+	       if impressions is None:
+	          print ('skipped urn %s ' % urn)
+	          continue
+	    except:
+	       print ('entry %s does not seem to have an impression tag')
 	       continue
 	    #print(impressions.text.replace('\n','').replace(',','').replace('  ', ''))
 	    #print(impressions.text.replace('\n', '').replace(',','').split(' '))
 	    impressions_num = None
+	    print ('about to do num')
 	    impressions_num = int(impressions.text.replace('\n','').replace(',','').replace('  ','').split(' ')[0])
+	    print ('impression')
 	    # Find the date as a string from the date of saving
 	    date = None
 	    possibleDates = entry.find_all('span', {'aria-hidden': 'true'})
+	    print ('possibleDates')
 	    for possibleDate in possibleDates:
-	       if possibleDate.text[0] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
+	       if possibleDate.text and possibleDate.text[0] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
 	          date = str(possibleDate.text.split(' ')[0])
 	          break
+	    if date is None:
+	       date = datetime.today().strftime('%Y-%m-%d')
 	    # Find the text
+	    print ("find the text")
 	    articleText = entry.find('span', {"class": "break-words"}).text
 	    words = articleText.split()
 	    tags = []
@@ -77,6 +87,8 @@ def buildDatabase(filename):
 
 	    # Find the type
 	    type = None
+	    poll = None
+	    poll = entry.find('div', {"class": "update-components-poll__header"})
 	    article_url = None
 	    article = entry.find('article', {"class": "feed-shared-article"})
 	    if article:
@@ -100,6 +112,8 @@ def buildDatabase(filename):
 	        database.append({'urn':urn, 'date':date, 'impressions':impressions_num, 'type': 'article', 'text': articleText, 'tags': tags, 'people': people, 'link_url': article_url, 'comments': comments, 'likes': likes, 'reposts': reposts})
 	    elif (video):
 	        database.append({'urn':urn, 'date':date, 'impressions':impressions_num, 'type': 'internal_video', 'text': articleText, 'tags': tags, 'people': people, 'link_url': None, 'comments': comments, 'likes': likes, 'reposts': reposts})
+	    elif (poll):
+	        database.append({'urn':urn, 'date':date, 'impressions':impressions_num, 'type': 'poll', 'text': articleText, 'tags': tags, 'people': people, 'link_url': None, 'comments': comments, 'likes': likes, 'reposts': reposts})
 
 	        '''if (str(video).find("licdn.com")):
 	            database.append({'urn':urn, 'date':date, 'impressions':impressions_num, 'type': 'internal_video', 'text': articleText, 'tags': tags, 'people': people, 'link_url': None})
@@ -134,3 +148,12 @@ def saveJSON(database, filename):
 				file.write('},\n')
 				counter += 1
 
+
+if __name__ == '__main__':
+	import sys
+	filename = sys.argv[1]
+	database = buildDatabase(filename)
+	for entry in database:
+		print ("%s \t %s" % (entry['urn'], entry['date']))
+	#print (database)
+	print (len(database))

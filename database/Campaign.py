@@ -90,12 +90,14 @@ class Campaign(Base):
 	def getRerunRecommendations(cls, user_id):
 		# First get all campaigns
 		campaigns = cls.getRecords(user_id)
-		linkedIn_deadline = datetime.datetime.now() - relativedelta(year=1, month=6)
+		linkedIn_deadline = datetime.datetime.now() - relativedelta(year=1, month=2)
 		recommendations = {'linkedin':[], 'tiktok':[], 'youtube':[]}
 		for campaign in campaigns:
 			languageDict = {}
 			mediaDict = {}
 			runs = cls.getRuns(campaign[0])
+			linkedIn_reruns = []
+			linkedIn_stillValid = []
 			for run in runs:
 				runDetails = Run.getRecord(user_id, run[0])
 				if not(runDetails[8] or runDetails[9]):
@@ -111,13 +113,24 @@ class Campaign(Base):
 				else:
 					mediaDict[runDetails[9]] = [runDetails[10]]
 
-				if runDetails[9] == 'linkedin' and runDetails[2] < linkedIn_deadline.date():
-					recommendations[runDetails[9]].append({'campaign':campaign[0], 'title':campaign[1], 'msg':'Rerun candidate (%s)' % runDetails[10], 'language':[runDetails[10]]})
+				if runDetails[9] == 'linkedin':
+					if runDetails[2] < linkedIn_deadline.date():
+						linkedIn_reruns.append({'campaign':campaign[0], 'title':campaign[1], 'msg':'Rerun candidate (%s)' % runDetails[10], 'language':[runDetails[10]]})
+					else:
+						linkedIn_stillValid.append(runDetails[10])
+		
+			coveredLang = []
+			for candidate in linkedIn_reruns:
+				if candidate['language'] not in linkedIn_stillValid and candidate['language'] not in coveredLang:
+					recommendations['linkedin'].append(candidate)
+					coveredLang.append(candidate['language'])
+
 
 			for medium in recommendations.keys():
 				# Case 1: Missing video on one media
 				if medium not in mediaDict.keys():
-					recommendations[medium].append({'campaign':campaign[0], 'title':campaign[1], 'msg':'New run', 'language':languageDict.keys()})
+					if campaign[0] == 26:
+						recommendations[medium].append({'campaign':campaign[0], 'title':campaign[1], 'msg':'New run', 'language':languageDict.keys()})
 				# Case 2: Media exist but not in all languages
 				else:
 					for lang in languageDict.keys():
@@ -134,8 +147,8 @@ class Campaign(Base):
 			html += '<div class="table-wrap">\n\t<table class="sortable">'
 			html += '\n\t\t<thead>'
 			html += '\n\t\t\t<tr>'
-			html += '\n\t\t\t\t<th><button>Campaign ID<span aria=hidden="true"></span></button></th>'
-			html += '\n\t\t\t\t<th><button>Title<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th class="num"><button>Campaign ID<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button style="width: 400;">Title<span aria=hidden="true"></span></button></th>'
 			html += '\n\t\t\t\t<th><button>Message<span aria=hidden="true"></span></button></th>'
 			html += '\n\t\t\t\t<th><button>Language<span aria=hidden="true"></span></button></th>'
 			html += '\n\t\t\t</tr>'
@@ -144,7 +157,7 @@ class Campaign(Base):
 			for recommendation in recommendations[medium]:
 				for lang in recommendation['language']:
 					html += '\n\t\t\t<tr>'
-					html += '\n\t\t\t\t<td>%s</td><td>%s</td><td>%s</td><td>%s</td>' % (recommendation['campaign'], recommendation['title'], recommendation['msg'], lang)
+					html += '\n\t\t\t\t<td class="num">%s</td><td style="width: 400;">%s</td><td>%s</td><td>%s</td>' % (recommendation['campaign'], recommendation['title'], recommendation['msg'], lang)
 					html += '\n\t\t\t</tr>'
 			html += '\n\t\t</tbody>'
 			html += '\n\t</table>'
@@ -175,6 +188,7 @@ class Campaign(Base):
 		html += '\n\t\t\t\t<th style="width:50; max-width:50;"><button class="num"># Runs<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>First run<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Last run<span aria=hidden="true"></span></button></th>'
+		html += '\n\t\t\t\t<th><button>Types<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Languages<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button>Media<span aria=hidden="true"></span></button></th>'
 		html += '\n\t\t\t\t<th><button class="num">Displays<span aria=hidden="true"></span></button></th>'
@@ -202,6 +216,7 @@ class Campaign(Base):
 			languages = []
 			media = []
 			mediaDict = {'linkedin':'LI', 'tiktok':'TT', 'youtube':'YT'}
+			types = {}
 			views = 0
 			for run in runs:
 				#print (run)
@@ -220,12 +235,34 @@ class Campaign(Base):
 					views += datapoints[-1][3]
 				except Exception:
 					pass
+				# Types
+				if runRecord[5]:
+					types['A'] = 0
+				elif runRecord[6]:
+					types['I'] = 0
+				elif runRecord[7] or runRecord[8]:
+					types['V'] = 0
+				else:
+					types['S'] = 0
 
 			languages.sort()
 			media.sort()
+			types_list = list(types.keys())
+			types_list.sort()
 
 			html += '\n\t\t\t\t<td>%s</td>' % first_run
 			html += '\n\t\t\t\t<td>%s</td>' % last_run
+
+			# Types
+			html += '\n\t\t\t\t<td>'
+			pos = 0
+			for type in types_list:
+				html += type
+				pos += 1
+				if pos < len(types):
+					html += ', '
+			html += '</td>'
+
 			html += '\n\t\t\t\t<td>'
 			pos = 0
 			for language in languages:

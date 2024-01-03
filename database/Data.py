@@ -24,6 +24,7 @@ class Data(Base):
 	def add(cls, run_id, user_id, date, views, likes, comments, reposts, displays=0, minutes=0):
 		command = ("INSERT INTO data (run_id, user_id, date, views, likes, comments, reposts, displays, minutes)"
 			"VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')") % (run_id, user_id, date, views, likes, comments, reposts, displays, minutes)
+		print ("Adding data point %s - %s" % (run_id, date))
 		return cls.execute_commands([command])
 
 	@classmethod

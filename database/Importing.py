@@ -11,14 +11,18 @@ from youtube_analysis import buildDatabase as YT_Database
 from youtube_analysis import saveJSON as YT_save_json
 
 def add_linkedIn(filename):
+	print ('in add_linkedIn')
 	database = LI_Database(filename)
+	print ('database OK')
 	LI_save_json(database, '%s.json' % filename)
+	print ('json ok')
 	if filename.endswith('march23.html'):
 		Run.importFile(1, 'linkedin', '2023-03-31', "%s.json" % filename)
 	else:
 		print ('importing file %s' % filename)
 		myTime = os.path.getmtime(filename)
 		timestamp = time.strftime("%Y-%m-%d", time.strptime(time.ctime(myTime)))
+		print ('running Run.importFile')
 		Run.importFile(1, 'linkedin', timestamp, "%s.json" % filename) 
 
 def add_tiktok(filename):

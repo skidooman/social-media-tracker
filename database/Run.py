@@ -95,6 +95,7 @@ class Run(Base):
 					# Here, the fun begins, because LinkedIn doesn't report dates.
 					# Try to get as close as possible
 					dateApprox = True
+					
 					if (entry['date'].endswith('yr')):
 						year = int(entry['date'][:-2])
 						date = date.replace(year= date.year-year)
@@ -575,8 +576,11 @@ class Run(Base):
 			likes = 0
 			for entry in records[hash]:
 				points = Data.getRecords(user_id, entry[0])
-				entries = points[0][3]
-				likes = points[0][5]
+				try:
+					entries = points[0][3]
+					likes = points[0][5]
+				except Exception as e:
+					print ('problem with hash entry %s' % points)
 			html += '\n\t\t\t<td class="num">%s</td>' % entries
 			html += '\n\t\t\t<td class="num">%.2f</td>' % (entries/ len(records[hash]))
 			html += '\n\t\t\t<td class="num">%s</td>' % likes
