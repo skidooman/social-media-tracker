@@ -125,7 +125,7 @@ def buildDatabase(filename):
 	    #   date = datetime.today().strftime('%Y-%m-%d')
 	    # Find the text
 	    print ("find the text")
-	    articleText = entry.find('span', {"class": "break-words"}).text
+	    articleText = entry.find('span', {"class": "break-words"}).text.replace('\n',' ').replace('hashtag#',' #')
 	    words = articleText.split()
 	    tags = []
 	    people = []
