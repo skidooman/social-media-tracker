@@ -95,7 +95,6 @@ class Run(Base):
 					# Here, the fun begins, because LinkedIn doesn't report dates.
 					# Try to get as close as possible
 					dateApprox = True
-					
 					if (entry['date'].endswith('yr')):
 						year = int(entry['date'][:-2])
 						date = date.replace(year= date.year-year)
