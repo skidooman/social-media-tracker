@@ -71,9 +71,41 @@ class Run(Base):
 		return cls.execute_commands([command], fetching=True)
 
 	@classmethod
+	def getGraphDirs(cls):
+		answer = []
+
+		# Languages
+		languages = cls.getLanguages()
+		languageDir = {}
+		for language in languages:
+			command = "SELECT count(*) FROM Runs where language='%s';" % language
+			number = cls.execute_commands([command], fetching=True)
+			languageDir[language[0]] = number[0][0]
+		answer.append(languageDir)
+
+		# Social media
+		media = cls.getSocialMedia()
+		mediaDir = {}
+		for medium in media:
+			command = "SELECT count(*) FROM Runs WHERE social_media='%s';" % medium
+			number = cls.execute_commands([command], fetching=True)
+			mediaDir[medium[0]] = number[0][0]
+		answer.append(mediaDir)
+
+		print (answer)
+		return answer
+
+	@classmethod
 	def getLanguages(cls):
 		command = "SELECT DISTINCT {language} from Runs"
 		results = cls.getUniques('language', 'Runs')
+		results.sort()
+		return results
+
+	@classmethod
+	def getSocialMedia(cls):
+		command = "SELECT DISTINCT {social_media} from Runs"
+		results = cls.getUniques('social_media', 'Runs')
 		results.sort()
 		return results
 

@@ -4,6 +4,8 @@ from werkzeug.utils import secure_filename
 from collections import OrderedDict
 sys.path.append(os.getcwd() + '/database')
 from database import Run, Campaign, Importing, Artifact
+import plotly.express as px
+from io import BytesIO
 
 
 UPLOAD_FOLDER = os.getcwd() + '/files'
@@ -237,7 +239,7 @@ def edit_campaign(user_id, campaign_id):
 	#html += '\n</body></html>'
 	return html
 
-def filters(url):
+def filters(url, graphDirs=[]):
 	html 	= '<table border="0" width="100%">'
 	html += '<tr>'
 	html += '\n  <td valign="top"><h3>Filters</h3><button onclick="filter(\'%s\')" style="background:black;">Submit</button></td>' % url
@@ -278,10 +280,40 @@ def filters(url):
 		html += '\n      </td>'
 	html += '\n    </tr></table>'
 	html += '\n  </h4></td>'
-	html += '\n  <td width="40%">&nbsp;</td>'
+	html += '\n  <td width="40%">'
+	titles = ['<b>Languages</b>', '<b>Media</b>']
+	index = 0
+	for graph in graphDirs:
+		fig = px.pie(names=graph.keys(), values=graph.values(), title=titles[index])
+		fig.update_traces(textposition='inside', textinfo='percent+label', showlegend=False)
+		fig.update_layout(font=dict(size=45, family="Arial Black"))
+		stream = BytesIO()
+		fig.write_image(stream, format='svg')
+		stream.seek(0)
+		data = stream.getvalue().decode()
+		html += '\n   %s' % data 
+		index += 1
+	html += '\n  &nbsp;</td>'
 	html += '\n</tr>'
 	html += '</table>'
 	return html
+
+@app.route('/generate_graph', methods=['GET'])
+def generate_graph():
+	labels = []
+	values = []
+	for arg in request.args:
+		labels.append(arg)
+		values.append(int(request.args.get(arg)))
+	#labels = ['English', 'French', 'Chinese']
+	#values = [50, 30, 20]
+	fig = px.pie(names=labels, values=values)
+	fig.update_traces(textposition='inside', textinfo='percent+label', showlegend=False)
+	stream = BytesIO()
+	fig.write_image(stream, format='svg')
+	stream.seek(0)
+	data = stream.getvalue().decode()
+	return data
 
 @app.route('/get_campaign/<user_id>/<campaign_id>')
 def get_campaign(user_id, campaign_id):
@@ -321,7 +353,7 @@ def head():
 	html += '\n<head>\n  <link rel="stylesheet" href="/static/sortable-table.css">\n  <script src="/static/sortable-table.js"></script>'
 	html += '\n  <script src="/static/filter.js"></script><script src="/static/utilities.js"></script>'
 	html += '\n  <style>button { padding: 4px; margin: 1px; font-size: 100%; font-weight: bold; color: white; background: transparent; border: none; width: 100%; text-align: left; outline: none; cursor: pointer;}</style>'
-	html += '\n  <style type="text/css"> .centerDiv { position: fixed; width:500px; height: 500px; margin: 0 auto; top:50%, left: 50%, transform: translate(-50%,-50%); z-index:10; visibility: hidden; background-color:blue; } </style> '
+	html += '\n  <style type="text/css"> svg {width: 200; height: auto;} .centerDiv { position: fixed; width:500px; height: 500px; margin: 0 auto; top:50%, left: 50%, transform: translate(-50%,-50%); z-index:10; visibility: hidden; background-color:blue; } </style> '
 	html += '\n</head>'
 	return html
 
@@ -359,7 +391,9 @@ def index():
 	html = head()
 	html += '\n\n<body onload="filter(\'/runs\')">\n\n'
 	html += menu()
-	html += filters('/runs')
+	#graphDirs = [{'English':50, 'French':30, 'Chinese':20}]
+	graphDirs = Run.Run.getGraphDirs()
+	html += filters('/runs', graphDirs)
 	html += main()
 	return html
 
