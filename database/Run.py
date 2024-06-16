@@ -221,8 +221,17 @@ class Run(Base):
 
 	@classmethod
 	def getRecords(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None, simple=None,
-			original_date_before=None, original_date_after=None, linkedin=False, tiktok=None, youtube=None, languages=[]):
+			original_date_before=None, original_date_after=None, linkedin=False, tiktok=None, youtube=None, 
+			languages=[], orderBy=None, ascending=True):
+
 		command = "SELECT * FROM runs WHERE user_id = %s" % user_id
+
+		# These orderBys are field in the database, so let us order SQL to generate an ordered list
+		if orderBy and orderBy in ['id','publication_date','text','social_media', 'language']:
+			direction = 'ASC'
+			if ascending:
+				direction = 'DESC'
+			command += ' ORDER BY ' + orderBy + ' ' + direction
 
 		def getExternals(target):
 			externals = 0
@@ -327,7 +336,12 @@ class Run(Base):
 	#id, user_id, publication_date, publication_date_approx, text, text_link, image_link, video_link, internal_video, social_media
 	@classmethod
 	def getRecordsHTMLTable(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None,
-		simple=None, original_date_before=None, original_date_after=None, linkedin=False, tiktok=None, youtube=False, languages=[], checks=False, campaign=None):
+		simple=None, original_date_before=None, original_date_after=None, linkedin=False, tiktok=None, youtube=False, 
+		languages=[], checks=False, campaign=None, listSelectedFirst=True, orderBy=None, ascending=True, 
+		startRecord=0, endRecord=-1):
+
+		#orderBy = 'publication_date'
+		#ascending = False
 
 		def cleanText(myString):
 			if myString.startswith('<br><br> '):
@@ -358,18 +372,11 @@ class Run(Base):
 				except Exception:
 					break
 			return views, likes, comments, reposts, displays, minutes
-		
+		print ('getting records')
 		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple,
-			original_date_before, original_date_after, linkedin, tiktok, youtube, languages)
-
-		# Get the most recent date for LinkedIn
-		linkedIn_mostRecentDate = datetime.datetime.strptime('1970-01-01', '%Y-%m-%d').date()
-		for record in records:
-			if record[9] == 'linkedin':
-				points = Data.getRecords(user_id, record[0])
-				for point in points:
-					if point[2] > linkedIn_mostRecentDate:
-						linkedIn_mostRecentDate = point[2]
+			original_date_before, original_date_after, linkedin, tiktok, youtube, languages,
+			orderBy=orderBy, ascending=ascending)
+		print ('records ok (%s)' % len(records))
 
 		# If a campaign ID is provided, then it means we may need to turn on some of the checks
 		# Checks would be turned on if the runs_to_campaigns tables has the two associated
@@ -382,57 +389,96 @@ class Run(Base):
 		# All campaign runs is a dictionary that maps runs->[campaigns]
 		all_campaign_runs = cls.getAllCampaignRuns()
 
+		# Recorder the records in case you want to list the selected records first
+		if listSelectedFirst:
+			print ('in listSelectedFirst')
+			selectedRecords = []
+			unselectedRecords = []
+			for record in records:
+				if record[0] in campaign_runs:
+					selectedRecords.append(record)
+				else:
+					unselectedRecords.append(record)
+			records = selectedRecords
+			records.extend(unselectedRecords)
+
+		# Provide the range of record. If the request is larger than the last record, return until last record
+		# If the start record is over the last record, then [] 
+		if endRecord != -1:
+			if startRecord > len(records) - 1:
+				records = []
+			else:
+				if endRecord > len(records) - 1:
+					endRecord = len(records)
+				records = records[startRecord:endRecord]
+
+		print ('noew records is %s' % len(records))
+
+		# Get the most recent date for LinkedIn
+		linkedIn_mostRecentDate = datetime.datetime.strptime('1970-01-01', '%Y-%m-%d').date()
+		for record in records:
+			if record[9] == 'linkedin':
+				points = Data.getRecords(user_id, record[0])
+				for point in points:
+					if point[2] > linkedIn_mostRecentDate:
+						linkedIn_mostRecentDate = point[2]
+
+
+ 
+
 		##print ('RECORDS: %s' % len(records))
 		#html = '<h2>Records: %s</h2>' % len(records)
-		html = '<div class="table-wrap">\n\t<table class="sortable">'
-		html += '\n\t\t<thead>'
-		html += '\n\t\t\t<tr>'
-		if checks:
-			html += '\n\t\t\t<th></th>'
-		html += '\n\t\t\t\t<th><button>ID<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>Date<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>Text<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>Type<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>Media<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>Lang<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>Last data<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>Displays<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t\<th class="num"><button>Swing<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>Likes<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>Comment<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>Repost<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>Viewed<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>Minutes<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>Dead?<span area=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>Campaigns<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th></th>'
-		html += '\n\t\t\t</tr>'
-
-		# Totals
-		if not checks:
-			views, likes, comments, reposts, displays, minutes = getTotals(user_id, records)
+		print ('html edition')
+		html = ''
+		if startRecord == 0:
+			html += '<div class="table-wrap">\n\t<table class="sortable">'
+			html += '\n\t\t<thead>'
 			html += '\n\t\t\t<tr>'
-			html += '\n\t\t\t\t<th style="background-color: white; color: black;">Records: %s</th>' % len(records)
-			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
-			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
-			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
-			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
-			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
-			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
-			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % views
-			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
-			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % likes
-			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % comments
-			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % reposts
-			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % displays
-			html += '\n\t\t\t\t<th style="background-color: white; color: black;">%.1f hours</th>' % (minutes/60)
-			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
-			html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+			if checks:
+				html += '\n\t\t\t<th></th>'
+			html += '\n\t\t\t\t<th><button>ID<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Date<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Text<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Type<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Media<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Lang<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Last data<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th class="num"><button>Displays<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t\<th class="num"><button>Swing<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th class="num"><button>Likes<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th class="num"><button>Comment<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th class="num"><button>Repost<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th class="num"><button>Viewed<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th class="num"><button>Minutes<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Dead?<span area=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Campaigns<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th></th>'
 			html += '\n\t\t\t</tr>'
 
-		html += '\n\t\t</thead>'
+			# Totals
+			if not checks:
+				views, likes, comments, reposts, displays, minutes = getTotals(user_id, records)
+				html += '\n\t\t\t<tr>'
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;">Records: %s</th>' % len(records)
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % views
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % likes
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % comments
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % reposts
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;">%s</th>' % displays
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;">%.1f hours</th>' % (minutes/60)
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
+				html += '\n\t\t\t</tr>'
 
-		html += '\n\t\t<tbody>'
+			html += '\n\t\t</thead>'
+			html += '\n\t\t<tbody id="main_body">'
 		
 		recordNum = 0
 		for record in records:
@@ -542,9 +588,12 @@ class Run(Base):
 
 			html += '\n\t\t\t</tr>'
 		
-		html += '\n\t\t</tbody>'
-		html += '\n\t</table>'
-		html += '\n</div>'
+		if startRecord == 0:
+			html += '\n\t\t</tbody>'
+			html += '\n\t</table>'
+			html += '\n</div>'
+
+		print ('html generation done')
 
 		return html, cls.getKeywordHtml(user_id, records)
 

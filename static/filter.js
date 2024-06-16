@@ -114,3 +114,72 @@ function load(url)
 	}).catch(error => console.error('Error:', error)); 
 	//alert(answer);
 }
+
+// This loads the run list - but by chunks
+function load_runs_inner(base_url, start_record, chunk_size, run_size) {
+	  let new_start_record = start_record + chunk_size;
+
+	  answer = fetch(base_url + '/' + start_record + '/' + chunk_size, {
+
+	  method: 'POST',
+	  body: JSON.stringify({
+	  }),
+	  headers: {
+	    'Content-type': 'application/json; charset=UTF-8',
+	  }
+	  })
+	  .then(function(response){
+		 //alert (response.text())
+	  	return response.text();})
+	  .then(function(data)
+	  {
+	  	if (start_record==0) {
+	   		document.getElementById('main').innerHTML+=data;
+		}
+		else {
+			document.getElementById('main').getElementsByTagName('tbody')[0].innerHTML+=data;
+		}
+		if (new_start_record < run_size) setTimeout(load_runs_inner(base_url, new_start_record, chunk_size, run_size), 0);
+		else document.getElementById('meter').remove()
+	   
+	}).catch(error => console.error('Error:', error));
+	document.getElementById('progress_bar').value = new_start_record;
+	initialize_sortable();
+	//console.log('here ' + document.getElementById("main").getElementsByTagName('tbody').rows);
+}
+
+function load_runs(url)
+{
+        document.getElementById('main').innerHTML='<div id="meter"><h3>Retrieving data, please stand by...&nbsp;&nbsp;<progress id="progress_bar" value="0" max="100"> </progress></h3></div>';
+	inputs = document.getElementsByTagName('input');
+
+	// How many runs are there total?
+	runs = fetch('/get_total_runs', {
+	  method: 'POST',
+	  body: JSON.stringify({
+	  }),
+	  headers: {
+	    'Content-type': 'application/json; charset=UTF-8',
+	  }
+	  })
+	  .then(function(response) {
+		return response.text();})
+	  .then(function(data) {
+                document.getElementById('progress_bar').max = data;
+
+		// The URL is campaign_id/start_record/chunk_size
+		let last_slash = url.lastIndexOf('/');
+		let chunk_size = parseInt(url.substring(last_slash+1,url.length));
+		let remainder = url.substring(0,last_slash);
+		last_slash = remainder.lastIndexOf('/');
+		let start_record = parseInt(remainder.substring(last_slash+1, remainder.length));
+		remainder = remainder.substring(0, last_slash);
+
+		// While we have not extracted all rows, proceed in a recursive algorithm
+                load_runs_inner(remainder, start_record, chunk_size, data);
+
+	  }).catch(error => console.error('Error:', error));
+
+	 
+	//alert(answer);
+}

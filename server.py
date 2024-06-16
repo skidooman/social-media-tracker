@@ -101,7 +101,8 @@ def edit_campaign(user_id, campaign_id):
 	html = head()
 	try:
 		if int(campaign_id) > -1:
-			html += '\n\n<body onload="load(\'/runs_campaign/%s\')">\n\n' % campaign_id
+			#html += '\n\n<body onload="load(\'/runs_campaign/%s\')">\n\n' % campaign_id
+			html += '\n\n<body onload="load_runs(\'/runs_campaign_chunk/%s/0/50\')">\n\n' % campaign_id
 		else:
 			html += '\n\n<body onload="load(\'/runs_simple\')">\n\n'
 	except Exception:
@@ -329,6 +330,10 @@ def get_campaign(user_id, campaign_id):
 def get_campaign_runs(campaign_id):
 	return Campaign.Campaign.getRuns(campaign_id)
 
+@app.route('/get_total_runs', methods=['GET', 'POST'])
+def get_total_runs():
+	return str(len(Run.Run.getRecords(1)))
+
 @app.route('/hashes', methods=['POST'])
 def hashes():
 	data = request.json
@@ -445,6 +450,12 @@ def runs():
 @app.route('/runs_campaign/<campaign_id>', methods=['POST'])
 def runs_campaign(campaign_id):
 	answer = Run.Run.getRecordsHTMLTable(1, checks=True, campaign=campaign_id)
+	return answer[0].encode() # The first report is the runs
+
+# This version will only download a chunk of runs
+@app.route('/runs_campaign_chunk/<campaign_id>/<start_index>/<chunk_size>', methods=['POST'])
+def runs_campaign_chunk(campaign_id, start_index, chunk_size):
+	answer = Run.Run.getRecordsHTMLTable(1, checks=True, campaign=campaign_id, startRecord=int(start_index), endRecord=int(start_index) + int(chunk_size))
 	return answer[0].encode() # The first report is the runs
 
 @app.route('/runs_simple', methods=['POST'])

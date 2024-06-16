@@ -63,6 +63,10 @@ def correctDate(date, filename):
 				newDate = 1
 
 		# Update the date and send to the caller
+		if newDate > 28 and newMonth == 2:
+			newDate = 28
+		elif newDate > 30 and newMonth in [4,6,9,11]:
+			newDate = 30
 		filedate = filedate.replace(year=newYear, month=newMonth, day=newDate)
 		print ('old date: %s' % date)
 		print ('new date: %s' % filedate)
