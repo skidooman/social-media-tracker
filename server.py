@@ -31,9 +31,9 @@ def allowed_file(filename, media):
 @app.route('/campaign')
 def campaign():
 	html = head()
-	html += '\n\n<body onload="filter(\'/campaigns\')">\n\n'
+	html += '\n\n<body onload="filter(\'/campaigns_chunk/0/50\', \'campaigns\')">\n\n'
 	html += menu()
-	html += filters('/campaigns')
+	html += filters('/campaigns_chunk/0/50', runs_or_campaigns='campaigns')
 	html += '\n\t<table border="0"><tr><td><button onclick="window.location=\'/edit_campaign/1/-1\';" style="background-color: black;">New campaign</button></td><td width="80%"></td></tr></table>'
 	html += main()
 	return html
@@ -48,6 +48,22 @@ def campaigns():
 		simple=data['simple'], original_date_before=data['original_date_before'],
 		original_date_after=data['original_date_after'], linkedin=data['linkedin'], tiktok=data['tiktok'], 
 		youtube=data['youtube'], languages=data['languages'])
+	
+	#answer = Campaign.Campaign.getRecordsHTMLTable(1)
+	return answer[0].encode() # The first report is the runs
+
+
+#@app.route('/campaigns', methods=['POST'])
+@app.route('/campaigns_chunk/<start_record>/<chunk_size>', methods=['GET', 'POST'])
+def campaigns_chunk(start_record, chunk_size):
+	data = request.json
+	#{'image': False, 'external_text': False, 'internal_video': False, 'external_video': False, 'simple': False, 'original_date_before': False, 'original_date_after': False}
+	answer = Campaign.Campaign.getRecordsHTMLTable(1, image=data['image'], external_text=data['external_text'], 
+		internal_video=data['internal_video'], external_video=data['external_video'], 
+		simple=data['simple'], original_date_before=data['original_date_before'],
+		original_date_after=data['original_date_after'], linkedin=data['linkedin'], tiktok=data['tiktok'], 
+		youtube=data['youtube'], languages=data['languages'], startRecord=int(start_record), 
+		endRecord=int(start_record)+int(chunk_size))
 	
 	#answer = Campaign.Campaign.getRecordsHTMLTable(1)
 	return answer[0].encode() # The first report is the runs
@@ -104,7 +120,8 @@ def edit_campaign(user_id, campaign_id):
 			#html += '\n\n<body onload="load(\'/runs_campaign/%s\')">\n\n' % campaign_id
 			html += '\n\n<body onload="load_runs(\'/runs_campaign_chunk/%s/0/50\')">\n\n' % campaign_id
 		else:
-			html += '\n\n<body onload="load(\'/runs_simple\')">\n\n'
+			#html += '\n\n<body onload="load(\'/runs_simple\')">\n\n'
+			html += '\n\n<body onload="load(\'/runs_simple_chunk/0/50\')">\n\n'
 	except Exception:
 		html += '\n\n<body onload="load(\'/runs_simple\')">\n\n'
 	
@@ -240,10 +257,10 @@ def edit_campaign(user_id, campaign_id):
 	#html += '\n</body></html>'
 	return html
 
-def filters(url, graphDirs=[]):
+def filters(url, graphDirs=[], runs_or_campaigns='runs'):
 	html 	= '<table border="0" width="100%">'
 	html += '<tr>'
-	html += '\n  <td valign="top"><h3>Filters</h3><button onclick="filter(\'%s\')" style="background:black;">Submit</button></td>' % url
+	html += '\n  <td valign="top"><h3>Filters</h3><button onclick="filter(\'%s\', \'%s\')" style="background:black;">Submit</button></td>' % (url, runs_or_campaigns)
 	html += '\n  <td valign="top"><h4>Types<br>'
 	html += '\n    <input type="checkbox" id="image" name="image" value="image"><label for="image">Images<br>'
 	html += '\n    <input type="checkbox" id="article" name="article" value="article"><label for="article">Articles<br>'
@@ -330,6 +347,21 @@ def get_campaign(user_id, campaign_id):
 def get_campaign_runs(campaign_id):
 	return Campaign.Campaign.getRuns(campaign_id)
 
+@app.route('/get_total_campaigns', methods=['GET', 'POST'])
+def get_total_campaigns():
+	return str(len(Campaign.Campaign.getRecords(1)))
+
+@app.route('/get_total_hashes', methods=['POST'])
+def get_total_hashes():
+	print ('in get_total_hashes')
+	data = request.json
+	myDict = Run.Run.getHashesDict(1, image=data['image'], external_text=data['external_text'], 
+		internal_video=data['internal_video'], external_video=data['external_video'], 
+		simple=data['simple'], original_date_before=data['original_date_before'],
+		original_date_after=data['original_date_after'], linkedin=data['linkedin'], tiktok=data['tiktok'], youtube=data['youtube'])	
+	print (len(myDict))
+	return str(len(myDict)) # The second report is the hashes
+
 @app.route('/get_total_runs', methods=['GET', 'POST'])
 def get_total_runs():
 	return str(len(Run.Run.getRecords(1)))
@@ -337,19 +369,33 @@ def get_total_runs():
 @app.route('/hashes', methods=['POST'])
 def hashes():
 	data = request.json
-	#{'image': False, 'external_text': False, 'internal_video': False, 'external_video': False, 'simple': False, 'original_date_before': False, 'original_date_after': False}
+	#{'image': False, 'external_text': False, 'internal_video': False, 'external_video': False, 'simple': False, 'original_date_before': False, 'original_date_after': False}	print ("get_total_campaigns: %s" % len(Campaign.Campaign.getRecords(1)))
 	answer = Run.Run.getRecordsHTMLTable(1, image=data['image'], external_text=data['external_text'], 
 		internal_video=data['internal_video'], external_video=data['external_video'], 
 		simple=data['simple'], original_date_before=data['original_date_before'],
 		original_date_after=data['original_date_after'], linkedin=data['linkedin'], tiktok=data['tiktok'], youtube=data['youtube'])
 	return answer[1].encode() # The second report is the hashes
 
+# This downloads runs by chunks
+@app.route('/hashes_chunk/<start_record>/<chunk_size>', methods=['POST'])
+def hashes_chunk(start_record, chunk_size):
+	data = request.json
+	#{'image': False, 'external_text': False, 'internal_video': False, 'external_video': False, 'simple': False, 'original_date_before': False, 'original_date_after': False}
+	answer = Run.Run.getHashesHtml(1, image=data['image'], external_text=data['external_text'], 
+		internal_video=data['internal_video'], external_video=data['external_video'], 
+		simple=data['simple'], original_date_before=data['original_date_before'],
+		original_date_after=data['original_date_after'], linkedin=data['linkedin'], tiktok=data['tiktok'],
+		youtube=data['youtube'], languages=data['languages'], startRecord=int(start_record), 
+		endRecord=int(start_record)+int(chunk_size))
+	return answer
+
+
 @app.route('/hash')
 def hash():
 	html = head()
-	html += '\n\n<body onload="filter(\'/hashes\')">\n\n'
+	html += '\n\n<body onload="filter(\'/hashes_chunk/0/50\', \'hashes\')">\n\n'
 	html += menu()
-	html += filters('/hashes')
+	html += filters('/hashes_chunk/0/50, \'hashes\'', runs_or_campaigns='hashes')
 	html += main()
 	return html
 
@@ -394,11 +440,11 @@ def importFunction():
 @app.route('/')
 def index():
 	html = head()
-	html += '\n\n<body onload="filter(\'/runs\')">\n\n'
+	html += '\n\n<body onload="filter(\'/runs_chunk/0/50\', \'runs\')">\n\n'
 	html += menu()
 	#graphDirs = [{'English':50, 'French':30, 'Chinese':20}]
 	graphDirs = Run.Run.getGraphDirs()
-	html += filters('/runs', graphDirs)
+	html += filters('/runs_chunk/0/50', graphDirs, runs_or_campaigns='runs')
 	html += main()
 	return html
 
@@ -435,7 +481,6 @@ def reruns():
 	return html
 
 
-
 @app.route('/runs', methods=['POST'])
 def runs():
 	data = request.json
@@ -445,6 +490,19 @@ def runs():
 		simple=data['simple'], original_date_before=data['original_date_before'],
 		original_date_after=data['original_date_after'], linkedin=data['linkedin'], tiktok=data['tiktok'],
 		youtube=data['youtube'], languages=data['languages'])
+	return answer[0].encode() # The first report is the runs
+
+# This downloads runs by chunks
+@app.route('/runs_chunk/<start_record>/<chunk_size>', methods=['POST'])
+def runs_chunk(start_record, chunk_size):
+	data = request.json
+	#{'image': False, 'external_text': False, 'internal_video': False, 'external_video': False, 'simple': False, 'original_date_before': False, 'original_date_after': False}
+	answer = Run.Run.getRecordsHTMLTable(1, image=data['image'], external_text=data['external_text'], 
+		internal_video=data['internal_video'], external_video=data['external_video'], 
+		simple=data['simple'], original_date_before=data['original_date_before'],
+		original_date_after=data['original_date_after'], linkedin=data['linkedin'], tiktok=data['tiktok'],
+		youtube=data['youtube'], languages=data['languages'], startRecord=int(start_record), 
+		endRecord=int(start_record)+int(chunk_size))
 	return answer[0].encode() # The first report is the runs
 
 @app.route('/runs_campaign/<campaign_id>', methods=['POST'])
@@ -461,6 +519,13 @@ def runs_campaign_chunk(campaign_id, start_index, chunk_size):
 @app.route('/runs_simple', methods=['POST'])
 def runs_simple():
 	answer = Run.Run.getRecordsHTMLTable(1, checks=True)
+	return answer[0].encode() # The first report is the runs
+
+# This version will only download a chunk of runs
+@app.route('/runs_simple/<start_index>/<chunk_size>', methods=['POST'])
+def runs_simple_chunk(start_index, chunk_size):
+	answer = Run.Run.getRecordsHTMLTable(1, checks=True, startRecord=int(start_record), 
+		endRecord=int(start_record)+int(chunk_size))
 	return answer[0].encode() # The first report is the runs
 
 @app.route('/submit', methods=['POST'])

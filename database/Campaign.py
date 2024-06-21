@@ -53,7 +53,8 @@ class Campaign(Base):
 	@classmethod
 	#def getRecords(cls, user_id):
 	def getRecords(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None, simple=None,
-                        original_date_before=None, original_date_after=None, linkedin=False, tiktok=None, youtube=None, languages=[]):
+                        original_date_before=None, original_date_after=None, linkedin=False, tiktok=None, youtube=None, 
+			languages=[]):
 		command = "SELECT * FROM campaigns WHERE user_id = %s" % user_id
 		# Do we need to restrict that list?
 		if image or external_text or internal_video or external_video or simple or original_date_before or original_date_after or linkedin or youtube or tiktok or languages:
@@ -81,7 +82,7 @@ class Campaign(Base):
 			for campaign in campaigns:
 				if campaign[0] in relevant_campaign_ids:
 					relevant_campaigns.append(campaign)
-			
+						
 			return relevant_campaigns
 		else:
 			return cls.execute_commands([command], fetching=True)
@@ -173,31 +174,45 @@ class Campaign(Base):
 	@classmethod
 	#def getRecordsHTMLTable(cls, user_id):	
 	def getRecordsHTMLTable(cls, user_id, image=None, external_text=None, internal_video=None, external_video=None, simple=None,
-                        original_date_before=None, original_date_after=None, linkedin=False, tiktok=None, youtube=None, languages=[]):
+                        original_date_before=None, original_date_after=None, linkedin=False, tiktok=None, youtube=None, 
+			languages=[], startRecord=0, endRecord=-1):
 		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple, original_date_before,
 			original_date_after, linkedin, tiktok, youtube, languages)
 
-		##print ('RECORDS: %s' % len(records))
-		html = '<h2>Records: %s</h2>' % len(records)
-		html += '<div class="table-wrap">\n\t<table class="sortable">'
-		html += '\n\t\t<thead>'
-		html += '\n\t\t\t<tr>'
-		html += '\n\t\t\t\t<th><button class="num">ID<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>Title<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>Description<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th style="width:50; max-width:50;"><button class="num"># Runs<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>First run<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>Last run<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>Types<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>Languages<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>Media<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button class="num">Displays<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th><button>Path<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th></th>'
-		html += '\n\t\t\t</tr>'
-		html += '\n\t\t</thead>'
+		# Provide the range of record. If the request is larger than the last record, return until last record
+		# If the start record is over the last record, then []
+		total_records = len(records) 
+		if endRecord != -1:
+			if startRecord > len(records) - 1:
+				records = []
+			else:
+				if endRecord > len(records) - 1:
+					endRecord = len(records)
+				records = records[startRecord:endRecord]
 
-		html += '\n\t\t<tbody>'
+		html = ""
+		if startRecord == 0:
+			##print ('RECORDS: %s' % len(records))
+			html = '<h2>Records: %s</h2>' % total_records
+			html += '<div class="table-wrap">\n\t<table class="sortable">'
+			html += '\n\t\t<thead>'
+			html += '\n\t\t\t<tr>'
+			html += '\n\t\t\t\t<th><button class="num">ID<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Title<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Description<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th style="width:50; max-width:50;"><button class="num"># Runs<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>First run<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Last run<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Types<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Languages<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Media<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button class="num">Displays<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th><button>Path<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th></th>'
+			html += '\n\t\t\t</tr>'
+			html += '\n\t\t</thead>'
+
+			html += '\n\t\t<tbody>'
 		
 		recordNum = 0
 		for record in records:
@@ -286,9 +301,10 @@ class Campaign(Base):
 			html += '\n\t\t\t</tr>'
 			recordNum += 1
 		
-		html += '\n\t\t</tbody>'
-		html += '\n\t</table>'
-		html += '\n</div>'
+		if startRecord == 0:	
+			html += '\n\t\t</tbody>'
+			html += '\n\t</table>'
+			html += '\n</div>'
 
 		return html, None
 

@@ -402,6 +402,16 @@ class Run(Base):
 			records = selectedRecords
 			records.extend(unselectedRecords)
 
+		views = 0
+		likes = 0
+		comments = 0
+		displays = 0
+		minutes = 0
+		reposts = 0
+		if not checks and startRecord==0:
+			views, likes, comments, reposts, displays, minutes = getTotals(user_id, records)
+		total_records = len(records)
+
 		# Provide the range of record. If the request is larger than the last record, return until last record
 		# If the start record is over the last record, then [] 
 		if endRecord != -1:
@@ -422,8 +432,6 @@ class Run(Base):
 				for point in points:
 					if point[2] > linkedIn_mostRecentDate:
 						linkedIn_mostRecentDate = point[2]
-
-
  
 
 		##print ('RECORDS: %s' % len(records))
@@ -457,9 +465,8 @@ class Run(Base):
 
 			# Totals
 			if not checks:
-				views, likes, comments, reposts, displays, minutes = getTotals(user_id, records)
 				html += '\n\t\t\t<tr>'
-				html += '\n\t\t\t\t<th style="background-color: white; color: black;">Records: %s</th>' % len(records)
+				html += '\n\t\t\t\t<th style="background-color: white; color: black;">Records: %s</th>' % total_records
 				html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
 				html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
 				html += '\n\t\t\t\t<th style="background-color: white; color: black;"></th>'
@@ -598,6 +605,27 @@ class Run(Base):
 		return html, cls.getKeywordHtml(user_id, records)
 
 	@classmethod
+	def getHashesDict(cls,user_id, image=None, external_text=None, internal_video=None, external_video=None,
+		simple=None, original_date_before=None, original_date_after=None, linkedin=False, tiktok=None, youtube=False, 
+		languages=[], checks=False, campaign=None, listSelectedFirst=True, orderBy=None, ascending=True, 
+		startRecord=0, endRecord=-1):
+		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple,
+			original_date_before, original_date_after, linkedin, tiktok, youtube, languages,
+			orderBy=orderBy, ascending=ascending)
+		myDict = cls.getKeywordDict(records)
+		return myDict
+
+	@classmethod
+	def getHashesHtml(cls,user_id, image=None, external_text=None, internal_video=None, external_video=None,
+		simple=None, original_date_before=None, original_date_after=None, linkedin=False, tiktok=None, youtube=False, 
+		languages=[], checks=False, campaign=None, listSelectedFirst=True, orderBy=None, ascending=True, 
+		startRecord=0, endRecord=-1):
+		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple,
+			original_date_before, original_date_after, linkedin, tiktok, youtube, languages,
+			orderBy=orderBy, ascending=ascending)
+		return cls.getKeywordHtml(user_id, records, startRecord=startRecord, endRecord=endRecord)
+
+	@classmethod
 	def getKeywordDict(cls, records):
 		capitalLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 		keywordDict = {}
@@ -631,43 +659,54 @@ class Run(Base):
 		return keywordDict
 
 	@classmethod
-	def getKeywordHtml(cls, user_id, records):
+	def getKeywordHtml(cls, user_id, records, startRecord=0, endRecord=-1):
 		records = cls.getKeywordDict(records)
-		##print ('RECORDS: %s' % len(records))
-		html = '<h2>Hashes: %s</h2>' % len(records.keys())
-		html += '<div class="table-wrap">\n\t<table class="sortable">'
-		html += '\n\t\t<thead>'
-		html += '\n\t\t\t<tr>'
-		html += '\n\t\t\t\t<th><button>Hash<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th class="num"><button># entries<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th class="num"><button># displays<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>Displays per entry<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>#Likes<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t\t<th class="num"><button>Likes per entry<span aria=hidden="true"></span></button></th>'
-		html += '\n\t\t\t</tr>'
-		html += '\n\t\t</thead>'
+		originalLength = len(records.keys())
+		if endRecord == -1:
+			endRecord = originalLength
 
-		html += '\n\t\t<tbody>'
-		for hash in records.keys():
+		##print ('RECORDS: %s' % len(records))
+		html = ""
+		if startRecord == 0:
+			html = '<h2>Hashes: %s</h2>' % originalLength
+			html += '<div class="table-wrap">\n\t<table class="sortable">'
+			html += '\n\t\t<thead>'
 			html += '\n\t\t\t<tr>'
-			html += '\n\t\t\t\t<td>%s</td>' % hash
-			html += '\n\t\t\t\t<td class="num">%s</td>' % len(records[hash])
-			entries = 0
-			likes = 0
-			for entry in records[hash]:
-				points = Data.getRecords(user_id, entry[0])
-				try:
-					entries = points[0][3]
-					likes = points[0][5]
-				except Exception as e:
-					print ('problem with hash entry %s' % points)
-			html += '\n\t\t\t<td class="num">%s</td>' % entries
-			html += '\n\t\t\t<td class="num">%.2f</td>' % (entries/ len(records[hash]))
-			html += '\n\t\t\t<td class="num">%s</td>' % likes
-			html += '\n\t\t\t<td class="num">%.2f</td>' % (likes / len(records[hash]))
+			html += '\n\t\t\t\t<th><button>Hash<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th class="num"><button># entries<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th class="num"><button># displays<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th class="num"><button>Displays per entry<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th class="num"><button>#Likes<span aria=hidden="true"></span></button></th>'
+			html += '\n\t\t\t\t<th class="num"><button>Likes per entry<span aria=hidden="true"></span></button></th>'
 			html += '\n\t\t\t</tr>'
-		html += '\n\t\t</tbody>'
-		html += '\n\t</table>'
+			html += '\n\t\t</thead>'
+
+			html += '\n\t\t<tbody>'
+		index = 0
+		for hash in records.keys():
+			if index >= startRecord and index < endRecord:
+				html += '\n\t\t\t<tr>'
+				html += '\n\t\t\t\t<td>%s</td>' % hash
+				html += '\n\t\t\t\t<td class="num">%s</td>' % len(records[hash])
+				entries = 0
+				likes = 0
+				for entry in records[hash]:
+					points = Data.getRecords(user_id, entry[0])
+					try:
+						entries = points[0][3]
+						likes = points[0][5]
+					except Exception as e:
+						print ('problem with hash entry %s' % points)
+				html += '\n\t\t\t<td class="num">%s</td>' % entries
+				html += '\n\t\t\t<td class="num">%.2f</td>' % (entries/ len(records[hash]))
+				html += '\n\t\t\t<td class="num">%s</td>' % likes
+				html += '\n\t\t\t<td class="num">%.2f</td>' % (likes / len(records[hash]))
+				html += '\n\t\t\t</tr>'
+			index += 1
+
+		if startRecord == 0:
+			html += '\n\t\t</tbody>'
+			html += '\n\t</table>'
 
 		return html
 
