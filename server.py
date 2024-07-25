@@ -121,7 +121,7 @@ def edit_campaign(user_id, campaign_id):
 			html += '\n\n<body onload="load_runs(\'/runs_campaign_chunk/%s/0/50\')">\n\n' % campaign_id
 		else:
 			#html += '\n\n<body onload="load(\'/runs_simple\')">\n\n'
-			html += '\n\n<body onload="load(\'/runs_simple_chunk/0/50\')">\n\n'
+			html += '\n\n<body onload="load_runs(\'/runs_simple_chunk/0/50\')">\n\n'
 	except Exception:
 		html += '\n\n<body onload="load(\'/runs_simple\')">\n\n'
 	
@@ -522,8 +522,8 @@ def runs_simple():
 	return answer[0].encode() # The first report is the runs
 
 # This version will only download a chunk of runs
-@app.route('/runs_simple/<start_index>/<chunk_size>', methods=['POST'])
-def runs_simple_chunk(start_index, chunk_size):
+@app.route('/runs_simple_chunk/<start_record>/<chunk_size>', methods=['POST'])
+def runs_simple_chunk(start_record, chunk_size):
 	answer = Run.Run.getRecordsHTMLTable(1, checks=True, startRecord=int(start_record), 
 		endRecord=int(start_record)+int(chunk_size))
 	return answer[0].encode() # The first report is the runs
