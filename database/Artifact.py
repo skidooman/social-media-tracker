@@ -8,12 +8,20 @@ class Artifact(Base):
 
 	@classmethod
 	def create(cls):
+		# Format is as follows
+		# 0: Video horizontal
+		# 1: Video vertical
+		# 2: Image
+		# 10: Other
 		command = ('CREATE TABLE artifacts('
 		        'id SERIAL PRIMARY KEY,'
-		        'vertical BOOLEAN,'
+		        'format VARCHAR(1),'
 		        'language VARCHAR(2),'
-		        'seconds INT)')
+		        'seconds INT,'
+			'created DATE)')
+		#print (command)
 		cls.execute_commands([command])
+		#print ("OK")
 
 		command = ('CREATE TABLE artifacts_to_runs('
 		        'video_id INT,'
@@ -31,7 +39,7 @@ class Artifact(Base):
 	def getArtifact(cls, id):
 		command = "SELECT * FROM artifacts"
 		result = cls.execute_commands([command], fetching=True)
-		return {"id": result[0], "vertical": result[1], "language": result[2], "seconds": result[3]}
+		return {"id": result[0], "format": result[1], "language": result[2], "seconds": result[3]}
 
 	# Find all campaigns associated with runs
 	@classmethod
@@ -58,10 +66,14 @@ class Artifact(Base):
 			minutes = int(Math.down(int(artifact['seconds'])/60))
 			seconds = int(artifacts['seconds']) - (minutes*60)
 			html += '\n   <tr><td>%s</td>' % artifact['id']
-			if artifact['vertical']:
+			if artifact['format'] == '0':
+				html += '\n     <td><select id="artifact_%s_orientation"><option value="horizontal" selected>Horizontal</option><option value="horizontal">Horizontal</option></select></td>' % (artifact['id'])
+			elif artifact['format'] == '1':
 				html += '\n     <td><select id="artifact_%s_orientation"><option value="vertical" selected>Vertical</option><option value="horizontal">Horizontal</option></select></td>' % (artifact['id'])
+			elif artifact['format'] == '2':
+				html += '\n     <td><select id="artifact_%s_orientation"><option value="image" selected>Image</option><option value="horizontal">Horizontal</option></select></td>' % (artifact['id'])
 			else:
-				html += '\n     <td><select id="artifact_%s_orientation"><option value="vertical">Vertical</option><option value="horizontal" selected>Horizontal</option></select></td>' % (artifact['id'])
+				html += '\n     <td><select id="artifact_%s_orientation"><option value="other">Other</option><option value="horizontal" selected>Horizontal</option></select></td>' % (artifact['id'])
 			html += '\n     <td><input type="text" id="artifact_%s_language" value="%s" number=\'2\' pattern=\'[a-z]{2}\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(languageMsg)\'/></td>' % (artifact['id'], artifact['language'])
 			html += '\n     <td><input type="text" id="artifact_%s_mins" value="%s" number=\'3\' pattern=\'[0-9]*\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(minsMsg)\'/></td><td><input type="text" id="artifact_%s_secs" value="%s" number=\'3\' pattern=\'[0-9]+\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(secsMsg)\'/></td>' % (artifact['id'], minutes, artifact['id'], seconds)
 			html += '\n     <td><button style="color:black;">X</button></td>'
@@ -69,3 +81,4 @@ class Artifact(Base):
 		html += '\n</table>'
 		return html
 
+#Artifact.create()
