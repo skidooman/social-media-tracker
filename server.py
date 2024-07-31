@@ -156,24 +156,6 @@ def edit_campaign(user_id, campaign_id):
 	html += "\n    {console.log(data);"
 	html += "\n    }).catch(error => console.error('Error:', error))"
 	html += "\n }\n"
-	html += '\n    var languageMsg = "Please provide a valid two-letter language code (lower case)";'
-	html += '\n    var minsMsg = "Please provide a valid time in minutes or leave empty";'
-	html += '\n    var secsMsg = "Please provide a valid time in seconds";'
-	html += "\n  function add_artifact() {"
-	html += "\n    var table = document.getElementById('artifacts');"
-	html += "\n    var row = table.insertRow(1);"
-	html += "\n    var id = row.insertCell(0);"
-	html += "\n    var orientation = row.insertCell(1);"
-	html += "\n    var language = row.insertCell(2);"
-	html += "\n    var mins = row.insertCell(3);"
-	html += '\n    var secs = row.insertCell(4);'
-	html += '\n    var remove = row.insertCell(5);'
-	html += '\n    orientation.innerHTML = "<select id=\'new_artifact_orientation\'><option value=\'vertical\'>Vertical</option><option value=\'horizontal\' selected>Horizontal</option></select>";'
-	html += '\n    language.innerHTML = "<input type=\'text\' id=\'new_artifact_language\' size=\'2\' number=\'2\' pattern=\'[a-z]{2}\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(languageMsg)\'/>";'
-	html += '\n    mins.innerHTML = "<input type=\'text\' id=\'new_artifact_mins\' size=\'3\' number=\'3\' pattern=\'[0-9]*\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(minsMsg)\'/>";'
-	html += '\n    secs.innerHTML = "<input type=\'text\' id=\'new_artifact_secs\' size=\'3\' number=\'3\' pattern=\'[0-9]+\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(secsMsg)\'/>";'
-	html += '\n    remove.innerHTML = "<td><button style=\'color:black;\'>X</button></td>";'
-	html += "\n}"
 	html += "\n</script>"
 
 	html += "\n<table border='0'>"
@@ -219,8 +201,6 @@ def edit_campaign(user_id, campaign_id):
 			html += '\n      <option value="%s">%s</option>' % (dict[key], key)
 	html += '\n     </select>'
 
-	html += '\n   <h4>Video artifacts                  '
-	html += '\n   <button id="add_artifact" onclick="add_artifact();" style="background-color: black; width: 100px;">Add artifact</button></h4>'
 	html += Artifact.Artifact.getExistingArtifactsTable()
 
 	html += '\n </tr>'
