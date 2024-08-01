@@ -64,7 +64,7 @@ class Artifact(Base):
 		command = "SELECT * FROM artifacts"
 		result = cls.execute_commands([command], fetching=True)
 		print (result)
-		return {"id": result[0], "format": result[1], "language": result[2], "seconds": result[3]}
+		return {"id": result[0][0], "format": result[0][1], "language": result[0][2], "seconds": result[0][3], "date":result[0][4]}
 
 	# Find all campaigns associated with runs
 	@classmethod
@@ -161,8 +161,8 @@ class Artifact(Base):
 
 		html += "</script>"
 		html += '\n   <h4>Artifacts                  '
-		html += '\n   <button id="add_artifact" onclick="add_artifact();" style="background-color: black; width: 100px;">Add artifact</button></h4>'
-		html += '\n<table id="artifacts" width="50%"><tr><th>ID</th><th>Orientation</th><th>Lang</th><th>Mins</th><th>Secs</th><th>Created</td></tr>'
+		html += '\n   <button id="add_artifact" onclick="add_artifact();" style="background-color: black; width: 100px;">Add</button></h4>'
+		html += '\n<table id="artifacts" width="25%"><tr><th>ID</th><th>Orientation</th><th>Lang</th><th>Mins</th><th>Secs</th><th>Created</th></tr>'
 		artifacts = cls.getAllCampaignArtifacts()
 		print ('artifacts: %s' % artifacts)
 		for artifact in artifacts.keys():
@@ -175,8 +175,11 @@ class Artifact(Base):
 	def getExistingArtifactsTableRow(cls, artifact):
 		minutes = 0
 		seconds = 0
-		minutes = int(Math.down(int(artifact['seconds'])/60))
-		seconds = int(artifacts['seconds']) - (minutes*60)
+		import math
+		print (artifact)
+		minutes = int(math.floor(int(artifact['seconds'])/60))
+		seconds = int(artifact['seconds']) - (minutes*60)
+		myDate = artifact['date']
 		html = '\n   <tr><td>%s</td>' % artifact['id']
 		if artifact['format'] == '0':
 			html += '\n     <td><select id="artifact_%s_orientation"><option value="horizontal" selected>Horizontal</option><option value="horizontal">Horizontal</option></select></td>' % (artifact['id'])
@@ -188,7 +191,7 @@ class Artifact(Base):
 			html += '\n     <td><select id="artifact_%s_orientation"><option value="other">Other</option><option value="horizontal" selected>Horizontal</option></select></td>' % (artifact['id'])
 		html += '\n     <td><input type="text" id="artifact_%s_language" value="%s" number=\'2\' pattern=\'[a-z]{2}\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(languageMsg)\'/></td>' % (artifact['id'], artifact['language'])
 		html += '\n     <td><input type="text" id="artifact_%s_mins" value="%s" number=\'3\' pattern=\'[0-9]*\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(minsMsg)\'/></td><td><input type="text" id="artifact_%s_secs" value="%s" number=\'3\' pattern=\'[0-9]+\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(secsMsg)\'/></td>' % (artifact['id'], minutes, artifact['id'], seconds)
-		html += '\n     <td><input type="date" id="artifact_%s_mins" value="%s" oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(minsMsg)\'/></td><td><input type="text" id="artifact_%s_date" value="%s" number=\'3\' pattern=\'[0-9]+\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(secsMsg)\'/></td>' % (artifact['id'], minutes, artifact['id'], seconds)
+		html += '\n     <td><input type="text" id="artifact_%s_date" value="%s"/></td>' % (artifact['id'], myDate)
 		html += '\n     <td><button style="color:black;">&check;</button></td>'
 		html += '\n     <td><button style="color:black;">X</button></td>'
 		html += '\n   </tr>'
