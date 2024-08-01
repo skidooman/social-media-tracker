@@ -201,7 +201,9 @@ def edit_campaign(user_id, campaign_id):
 			html += '\n      <option value="%s">%s</option>' % (dict[key], key)
 	html += '\n     </select>'
 
-	html += Artifact.Artifact.getExistingArtifactsTable()
+	# We shouldn't allow inserting new Artefacts if an ID wasn't attributed
+	if int(campaign_id) > -1:
+		html += Artifact.Artifact.getExistingArtifactsTable()
 
 	html += '\n </tr>'
 	html += "\n</table>"
@@ -526,6 +528,17 @@ def submit_campaign():
 		status = Campaign.Campaign.add(data['user_id'], title=data['title'], description=data['description'], location=data['location'], runs=data['runs'])
 
 	return 'Status: %s' % status
+
+@app.route('/update_artefact', methods=['POST'])
+def update_artefact():
+	data = request.json
+	print (data)
+	try:
+		video_id = Artifact.Artifact.addArtifact(data['id'], data['campaign'], data['language'], data['format'], data['seconds'], data['date'])
+	except Exception as e:
+		print (e)
+		return "ERROR", 400
+	return str(video_id), 200
 
 @app.route('/upload/<media>', methods=['POST', 'GET'])
 def upload_file(media):

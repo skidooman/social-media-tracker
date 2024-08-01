@@ -18,7 +18,7 @@ class Base:
 	    except Exception as error:
 	        print ('Could not retrieve uniques: %s' % error)
 
-	def execute_commands(commands, fetching=False):
+	def execute_commands(commands, fetching=False, failOnException=False):
 	    conn = None
 	    try:
 	        # read the connection parameters
@@ -46,6 +46,8 @@ class Base:
 	    except (Exception, psycopg2.DatabaseError) as error:
 	        print ('exception on execution')
 	        print (error)
+	        if failOnException:
+	            raise Exception ('Operation FAILED')
 	        return 1
 	    finally:
 	        if conn is not None:
