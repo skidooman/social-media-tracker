@@ -73,8 +73,6 @@ function linkArtifactToRun(run_div) {
 	answer = fetch('/get_run_videos/' + run_id_selected)
 		  .then(response => response.json())
 		  .then(data => {
-			console.log(data);
-		        alert('data is ' + data);
 			for(var j = 0; selected_video.options.length; j++){
 					if (selected_video.options[j].value == data){
 						selected_video.options.selectedIndex = j;
@@ -88,17 +86,6 @@ function linkArtifactToRun(run_div) {
 			alert('Could not retrieve data');
 			}
 			);
-/*function(data){
-			console.log('executing');
-			console.log(data);
-		   var code = data['code'];
-		   var video_id = data['text'];
-		   if (code == '200') {
-			alert(video_id);
-		   }
-		   else alert('Could not get current status: ' + code);
-		}).catch(error => console.error('Error:', error))*/
-		
 	
 }
 

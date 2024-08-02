@@ -191,7 +191,7 @@ class Artifact(Base):
 				seconds = seconds - (mins*60)
 				description += "%d:%02d" % (mins, seconds)
 			html += "\n      <option value='%s'>%s</option>" % (data['id'], description)
-		html += "\n   </select><br><b><table border='0' width='100%'><tr><td width='20%'></td><td width='20%'><button onclick='link_artifact();'>&check;</button></td><td width='20%'></td><td width='20%'><button>X</button></td><td width='20%'></td></tr></table></b></center></div>"
+		html += "\n   </select><br><b><table border='0' width='100%'><tr><td width='20%'></td><td width='20%'><button onclick='link_artifact();'>&check;</button></td><td width='20%'></td><td width='20%'><button onclick='document.getElementById(\"artifact_selector\").style.visibility=\"hidden\";'>X</button></td><td width='20%'></td></tr></table></b></center></div>"
 		html += '\n   <h4>Artifacts                  '
 		html += '\n   <button id="add_artifact" onclick="add_artifact();" style="background-color: black; width: 40px;">Add</button></h4>'
 		html += '\n<table id="artifacts" width="25%"><tr><th>ID</th><th>Orientation</th><th>Lang</th><th>Mins</th><th>Secs</th><th>Created</th></tr>'
