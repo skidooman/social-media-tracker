@@ -432,18 +432,16 @@ class Run(Base):
 				for point in points:
 					if point[2] > linkedIn_mostRecentDate:
 						linkedIn_mostRecentDate = point[2]
- 
 
-		##print ('RECORDS: %s' % len(records))
-		#html = '<h2>Records: %s</h2>' % len(records)
-		print ('html edition')
 		html = ''
+
 		if startRecord == 0:
 			html += '<div class="table-wrap">\n\t<table class="sortable">'
 			html += '\n\t\t<thead>'
 			html += '\n\t\t\t<tr>'
 			if checks:
 				html += '\n\t\t\t<th></th>'
+				html += '\n\t\t\t<th>Art</th>'
 			html += '\n\t\t\t\t<th><button>ID<span aria=hidden="true"></span></button></th>'
 			html += '\n\t\t\t\t<th><button>Date<span aria=hidden="true"></span></button></th>'
 			html += '\n\t\t\t\t<th><button>Text<span aria=hidden="true"></span></button></th>'
@@ -497,6 +495,9 @@ class Run(Base):
 				else:
 					html += '\n\t\t\t<td><input type="checkbox" class="run_check" id="%s" value="%s"></td>' % (record[0], record[0])
 				
+				# The artifacts (if any) go here
+				html += '\n\t\t\t<td><div id="art_%s" onclick="console.log(\'here\');linkArtifactToRun(\'art_%s\');">X</div>' % (record[0], record[0])
+
 			if record[9] == 'linkedin':
 				html += '\n\t\t\t\t<td class="num"><a href="https://www.linkedin.com/embed/feed/update/%s" target="_top">%s</a></td>' % (record[0], record[0]) # ID
 			elif record[9] == 'youtube':
@@ -601,6 +602,7 @@ class Run(Base):
 			html += '\n</div>'
 
 		print ('html generation done')
+		print (html)
 
 		return html, cls.getKeywordHtml(user_id, records)
 

@@ -21,6 +21,18 @@ app.secret_key = 'super secret key'
 app.config['SESSION_TYPE'] = 'filesystem'
 
 
+@app.route('/add_run_videos/<video_id>/<run_id>')
+def add_run_videos(video_id, run_id):
+	# The logic here is that a run can only have one video
+	# So if you delete all of these entries, you should be good.
+	try:
+		Artifact.Artifact.add_run_videos(video_id, run_id)
+		return "OK", 200
+	except Exception as e:
+		print (e)
+		return "Error", 400
+
+
 def allowed_file(filename, media):
 	allowed_extensions = ALLOWED_EXTENSIONS
 	if media == 'youtube':
@@ -72,6 +84,18 @@ def campaigns_chunk(start_record, chunk_size):
 def delete_campaign(user_id, campaign_id):
 	Campaign.Campaign.deleteRecord(user_id, campaign_id)
 	return '<html><head><script>window.location.href="/campaign";</script></head><body>Redirecting...</body></html>'
+
+@app.route('/delete_run_videos/<run_id>')
+def delete_run_videos(run_id):
+	# The logic here is that a run can only have one video
+	# So if you delete all of these entries, you should be good.
+	try:
+		print ('deleting')
+		Artifact.Artifact.delete_run_videos(run_id)
+		return "OK", 200
+	except Exception as e:
+		print (e)
+		return "Error", 400
 
 @app.route('/edit/<user_id>/<entry_id>')
 def edit(user_id, entry_id):
@@ -328,6 +352,18 @@ def get_campaign(user_id, campaign_id):
 @app.route('/get_campaign_runs/<campaign_id>')
 def get_campaign_runs(campaign_id):
 	return Campaign.Campaign.getRuns(campaign_id)
+
+@app.route('/get_run_videos/<run_id>')
+def get_run_videos(run_id):
+	# The logic here is that a run can only have one video
+	# So if you delete all of these entries, you should be good.
+	try:
+		run = str(Artifact.Artifact.get_run_videos(run_id))
+		print ('run: %s' % run)
+		return run, 200
+	except Exception as e:
+		print (e)
+		return "Error", 400
 
 @app.route('/get_total_campaigns', methods=['GET', 'POST'])
 def get_total_campaigns():

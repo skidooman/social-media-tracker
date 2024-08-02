@@ -2,6 +2,8 @@
 # This class represents Runs, which are individual posts on a social media
 
 from Base import Base
+from config import config
+import psycopg2
 
 class Artifact(Base):
 	name_of_table = 'artifacts'
@@ -37,9 +39,6 @@ class Artifact(Base):
 
 	@classmethod
 	def addArtifact(cls, video_id, campaign_id, language, format, seconds, date_creation):
-		from config import config
-		import psycopg2
-		print ('video_id %s' % video_id)
 		if (video_id == -1):
 			command = "INSERT INTO artifacts (format, language, seconds, created) VALUES ('%s', '%s', %s, '%s') RETURNING id" % (format, language, seconds, date_creation)
 			params = config()
@@ -60,10 +59,30 @@ class Artifact(Base):
 		return video_id
 
 	@classmethod
+	def add_run_videos(cls, video_id, run_id):
+		# The logic here is that a run can only have one video
+		# So if you delete all of these entries, you should be good.
+		print ('deleting')
+		command = "DELETE FROM artifacts_to_runs WHERE run_id = '%s'" % run_id
+		cls.execute_commands([command], failOnException=True)
+
+		print ('adding')
+		# If this is done correct, then and only then should you insert the following
+		command = "INSERT INTO artifacts_to_runs (video_id, run_id) VALUES (%s, %s)" % (video_id, run_id)
+		cls.execute_commands([command], failOnException=True)
+		print ('OK')
+
+	@classmethod
+	def delete_run_videos(cls, run_id):
+		# The logic here is that a run can only have one video
+		# So if you delete all of these entries, you should be good.
+		command = "DELETE FROM artifacts_to_runs WHERE run_id = '%s'" % run_id
+		cls.execute_commands([command], failOnException=True)
+
+	@classmethod
 	def getArtifact(cls, id):
 		command = "SELECT * FROM artifacts"
 		result = cls.execute_commands([command], fetching=True)
-		print (result)
 		return {"id": result[0][0], "format": result[0][1], "language": result[0][2], "seconds": result[0][3], "date":result[0][4]}
 
 	# Find all campaigns associated with runs
@@ -148,23 +167,35 @@ class Artifact(Base):
 		html += "\n    headers: {'Content-type': 'application/json; charset=UTF-8', }"
 		html += "\n  });"
 		html += "\n  if (response.ok) { alert('Saved'); document.getElementById(index+'_artifact_id').innerHTML=await response.text(); } else { alert('Server did not honor request'); }} catch {alert('Unknown failure');}" 
-		#html += "\n  .then(function(response){"
-		#html += "\n        /*alert (response.text());"
-		#html += "\n        if(response.text())"
-		#html += "\n             alert('OK');"
-		#html += "\n             else alert('error');*/})"
-		#html += "\n  .then(function(data)"
-		#html += "\n    {console.log(data);"
-		#html += "\n    }).catch(error => console.error('Error:', error));" 
 
 		html += '\n}'
 
 		html += "</script>"
-		html += '\n   <h4>Artifacts                  '
-		html += '\n   <button id="add_artifact" onclick="add_artifact();" style="background-color: black; width: 100px;">Add</button></h4>'
-		html += '\n<table id="artifacts" width="25%"><tr><th>ID</th><th>Orientation</th><th>Lang</th><th>Mins</th><th>Secs</th><th>Created</th></tr>'
+		html += "\n   <div id='artifact_selector' z-index='50' style='visibility: hidden; position: absolute; background-color: black; color: white;'><center><b>Select</b><br><select id='artifact_selected'><option value='null'></option>"
 		artifacts = cls.getAllCampaignArtifacts()
-		print ('artifacts: %s' % artifacts)
+		for artifact in artifacts.keys():
+			data = cls.getArtifact(artifact)
+			description = ''
+			if data['format'] == '0':
+				description += 'Video Horizontal: '
+			elif data['format'] == '1':
+				description += 'Video Vertical: '
+			elif data['format'] == '2':
+				description += 'Image'
+			else:
+				description += 'Other'
+			if data['format'] == '0' or data['format'] == '1': 
+				seconds = data['seconds']
+				import math
+				mins = math.floor(seconds/60)
+				seconds = seconds - (mins*60)
+				description += "%d:%02d" % (mins, seconds)
+			html += "\n      <option value='%s'>%s</option>" % (data['id'], description)
+		html += "\n   </select><br><b><table border='0' width='100%'><tr><td width='20%'></td><td width='20%'><button onclick='link_artifact();'>&check;</button></td><td width='20%'></td><td width='20%'><button>X</button></td><td width='20%'></td></tr></table></b></center></div>"
+		html += '\n   <h4>Artifacts                  '
+		html += '\n   <button id="add_artifact" onclick="add_artifact();" style="background-color: black; width: 40px;">Add</button></h4>'
+		html += '\n<table id="artifacts" width="25%"><tr><th>ID</th><th>Orientation</th><th>Lang</th><th>Mins</th><th>Secs</th><th>Created</th></tr>'
+
 		for artifact in artifacts.keys():
 			artifact = cls.getArtifact(artifact)
 			html += cls.getExistingArtifactsTableRow(artifact)
@@ -197,4 +228,14 @@ class Artifact(Base):
 		html += '\n   </tr>'
 		return html
 
+
+	@classmethod
+	def get_run_videos(cls, run_id):
+		command = "SELECT * FROM artifacts_to_runs WHERE run_id = '%s'" % run_id
+		results = cls.execute_commands([command], failOnException=True, fetching=True)
+		print (results)
+		if len(results) == 0:
+			return "none"
+		else:
+			 return results[0][0]
 #Artifact.create()

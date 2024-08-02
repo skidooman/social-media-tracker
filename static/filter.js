@@ -18,6 +18,90 @@ function del_campaign(user_id, id)
 	}
 }
 
+var run_id_selected = 0;
+
+
+function link_artifact() {
+	const selected_video = document.getElementById('artifact_selected');
+	const video = selected_video.options[selected_video.options.selectedIndex].value; // 42 (artifact)
+	if (video == 'null') {
+		answer = fetch('/delete_run_videos/' + run_id_selected)
+		  .then(function(response){
+			 //alert (response.text())
+		  	return response.status;})
+		  .then(function(code)
+		  {
+		   if (code == '200') {
+			alert('command successful');
+			document.getElementById('artifact_selector').style.visibility = 'hidden';
+		   }
+		   else alert('Command failed: ' + code);
+		}).catch(error => console.error('Error:', error))
+	}
+	else{
+		// A new run vs video needs to be either added
+		// OR updated
+		// This is all taken care of in the backend
+		answer = fetch('/add_run_videos/' + video + '/' + run_id_selected)
+		  .then(function(response){
+			 //alert (response.text())
+		  	return response.status;})
+		  .then(function(code)
+		  {
+		   if (code == '200') {
+			alert('command successful');
+			document.getElementById('artifact_selector').style.visibility = 'hidden';
+		   }
+		   else alert('Command failed: ' + code);
+		}).catch(error => console.error('Error:', error))
+		
+	}
+}
+
+function linkArtifactToRun(run_div) {
+	run_id_selected = run_div.substring(4);
+	console.log(run_id_selected); 
+	const div = document.getElementById(run_div);
+	const rect = div.getBoundingClientRect();
+	const selector = document.getElementById('artifact_selector');
+	const selected_video = document.getElementById('artifact_selected');
+	
+	selector.style.position = 'absolute';
+	selector.style.left = rect.x + rect.width + window.scrollX;
+	selector.style.top = rect.y + window.scrollY;
+	selector.style.visibility = 'visible';
+	answer = fetch('/get_run_videos/' + run_id_selected)
+		  .then(response => response.json())
+		  .then(data => {
+			console.log(data);
+		        alert('data is ' + data);
+			for(var j = 0; selected_video.options.length; j++){
+					if (selected_video.options[j].value == data){
+						selected_video.options.selectedIndex = j;
+						break;
+					}
+				}
+			}
+			)
+		  .catch(error => {
+			console.error(error)
+			alert('Could not retrieve data');
+			}
+			);
+/*function(data){
+			console.log('executing');
+			console.log(data);
+		   var code = data['code'];
+		   var video_id = data['text'];
+		   if (code == '200') {
+			alert(video_id);
+		   }
+		   else alert('Could not get current status: ' + code);
+		}).catch(error => console.error('Error:', error))*/
+		
+	
+}
+
 function load(url)
 {
         document.getElementById('main').innerHTML='<h3>Retrieving data, please stand by...</h3>';
