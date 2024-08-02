@@ -98,6 +98,25 @@ class Artifact(Base):
                         	dict[result[0]] = [result[1]]
 	        return dict
 
+	# This should return a map run_id => video_id
+	@classmethod
+	def getArtifactsForCampaign(cls, campaign):
+		command = "SELECT * FROM campaigns_to_artifacts WHERE campaign_id=%s" % campaign
+		results = cls.execute_commands([command], fetching=True)
+		myDict = {}
+		for result in results:
+			artifacts = cls.getRunsForArtifact(result[1])
+			if len(artifacts):
+				myDict[artifacts[0][1]] = result[1]
+				break
+		return myDict
+
+	@classmethod
+	def getRunsForArtifact(cls, artifact):
+		command = "SELECT * from artifacts_to_runs WHERE video_id=%s" % artifact
+		results = cls.execute_commands([command], fetching=True)
+		return results
+
 
 	@classmethod
 	def getExistingArtifactsTable(cls):

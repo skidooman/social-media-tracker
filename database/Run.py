@@ -2,6 +2,7 @@
 # This class represents Runs, which are individual posts on a social media
 
 from Base import Base
+from Artifact import Artifact
 import json, datetime
 from Data import Data
 #from textblob import TextBlob
@@ -486,6 +487,12 @@ class Run(Base):
 			html += '\n\t\t<tbody id="main_body">'
 		
 		recordNum = 0
+		
+		artifactsDatabase = []
+		if campaign:
+			artifactsDatabase = Artifact.getArtifactsForCampaign(campaign)
+			print ('ARTIFACTS: %s' % artifactsDatabase)
+
 		for record in records:
 			recordNum += 1
 			html += '\n\t\t\t<tr>'
@@ -496,7 +503,19 @@ class Run(Base):
 					html += '\n\t\t\t<td><input type="checkbox" class="run_check" id="%s" value="%s"></td>' % (record[0], record[0])
 				
 				# The artifacts (if any) go here
-				html += '\n\t\t\t<td><div id="art_%s" onclick="console.log(\'here\');linkArtifactToRun(\'art_%s\');">X</div>' % (record[0], record[0])
+				html += '\n\t\t\t<td><div id="art_%s" onclick="console.log(\'here\');linkArtifactToRun(\'art_%s\');">' % (record[0], record[0])
+				# Three cases:
+				# (1) Is this run even checked?
+				if record[0] in campaign_runs:
+					# (2) If checked, then is it linked to an artifact?
+					if record[0] in artifactsDatabase.keys():
+						# If so, put a checkmark
+						html += "&check;"
+					else:
+						# If not, an X
+						html += "X"
+					# And if not checked, don't put anything
+				html += '</div>'
 
 			if record[9] == 'linkedin':
 				html += '\n\t\t\t\t<td class="num"><a href="https://www.linkedin.com/embed/feed/update/%s" target="_top">%s</a></td>' % (record[0], record[0]) # ID

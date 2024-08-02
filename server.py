@@ -359,7 +359,6 @@ def get_run_videos(run_id):
 	# So if you delete all of these entries, you should be good.
 	try:
 		run = str(Artifact.Artifact.get_run_videos(run_id))
-		print ('run: %s' % run)
 		return run, 200
 	except Exception as e:
 		print (e)

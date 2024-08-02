@@ -34,6 +34,8 @@ function link_artifact() {
 		   if (code == '200') {
 			alert('command successful');
 			document.getElementById('artifact_selector').style.visibility = 'hidden';
+			// Make sure the run is marked with an x
+			document.getElementById('art_' + run_id_selected).innerHTML = 'X';
 		   }
 		   else alert('Command failed: ' + code);
 		}).catch(error => console.error('Error:', error))
@@ -51,6 +53,9 @@ function link_artifact() {
 		   if (code == '200') {
 			alert('command successful');
 			document.getElementById('artifact_selector').style.visibility = 'hidden';
+			// Make sure that the item is marked with a checkmark
+			document.getElementById('art_' + run_id_selected).innerHTML = '&check;';
+
 		   }
 		   else alert('Command failed: ' + code);
 		}).catch(error => console.error('Error:', error))
@@ -82,8 +87,9 @@ function linkArtifactToRun(run_div) {
 			}
 			)
 		  .catch(error => {
-			console.error(error)
-			alert('Could not retrieve data');
+			// We actually come here if the return is "none", which
+			// means that we do not have an artifact for this run yet
+			selected_video.options.selectedIndex = 0;
 			}
 			);
 	
