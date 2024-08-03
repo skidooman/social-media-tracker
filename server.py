@@ -1,4 +1,4 @@
-import os, sys, math
+import os, sys, math, json
 from flask import Flask, flash, redirect, render_template, Response, request
 from werkzeug.utils import secure_filename
 from collections import OrderedDict
@@ -92,6 +92,16 @@ def delete_run_videos(run_id):
 	try:
 		print ('deleting')
 		Artifact.Artifact.delete_run_videos(run_id)
+		return "OK", 200
+	except Exception as e:
+		print (e)
+		return "Error", 400
+
+@app.route('/delete_runs_video/<video_id>')
+def delete_runs_video(video_id):
+	try:
+		print ('deleting')
+		Artifact.Artifact.delete_video(video_id)
 		return "OK", 200
 	except Exception as e:
 		print (e)
@@ -353,6 +363,7 @@ def get_campaign(user_id, campaign_id):
 def get_campaign_runs(campaign_id):
 	return Campaign.Campaign.getRuns(campaign_id)
 
+# This returns a video attached to a run
 @app.route('/get_run_videos/<run_id>')
 def get_run_videos(run_id):
 	# The logic here is that a run can only have one video
@@ -360,6 +371,18 @@ def get_run_videos(run_id):
 	try:
 		run = str(Artifact.Artifact.get_run_videos(run_id))
 		return run, 200
+	except Exception as e:
+		print (e)
+		return "Error", 400
+
+
+# This returns the runs attached to a video
+@app.route('/get_runs_video/<video_id>')
+def get_runs_video(video_id):
+	try:
+		results = Artifact.Artifact.get_runs_video(video_id)
+		print (results)
+		return json.dumps(results), 200
 	except Exception as e:
 		print (e)
 		return "Error", 400

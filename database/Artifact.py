@@ -72,6 +72,36 @@ class Artifact(Base):
 		cls.execute_commands([command], failOnException=True)
 		print ('OK')
 
+	# Deletes all mentions of a specific video id
+	@classmethod
+	def delete_video(cls, video_id):
+		params = config()
+		# connect to the PostgreSQL server
+		conn = psycopg2.connect(**params)
+		cursor = conn.cursor()
+
+		# Any mention in artifacts_to_runs need to be dropped
+		print ('deleting runs')
+		command = "DELETE FROM artifacts_to_runs WHERE video_id=%s" % int(video_id)
+		result = cursor.execute(command)
+
+		# Any mention in campaigns_to_artifacts need to be dropped
+		print ('deleting campaigns')
+		command = "DELETE FROM campaigns_to_artifacts WHERE video_id=%s" % int(video_id)
+		result = cursor.execute(command)
+
+		# Artifact can now be dropped
+		print ('deleting artifact')
+		command = "DELETE FROM artifacts WHERE id=%s" % int(video_id)
+		result = cursor.execute(command)
+		print ('ok')
+
+		# If everything went fine, then you can commit
+		conn.commit()
+		conn.close()
+		cursor.close()
+		print ('done')
+
 	@classmethod
 	def delete_run_videos(cls, run_id):
 		# The logic here is that a run can only have one video
@@ -143,7 +173,7 @@ class Artifact(Base):
 		html += '\n    secs.innerHTML = "<input type=\'text\' id=\'" + newCounter + "_artifact_secs\' size=\'3\' number=\'3\' pattern=\'[0-9]+\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(secsMsg)\'/>";'
 		html += '\n    create.innerHTML = "<input type=\'date\' id=\'" + newCounter + "_artifact_date\' size=\'3\' number=\'3\' pattern=\'[0-9]+\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(secsMsg)\'/>";'
 		html += '\n    save.innerHTML = "<td><button style=\'color:black;\' onclick=\'save_artifact(" + newCounter + ");\'>&check;</button></td>";'
-		html += '\n    remove.innerHTML = "<td><button style=\'color:black;\'>X</button></td>";'
+		html += '\n    remove.innerHTML = "<td><button style=\'color:black;\' onclick=\'delete_video(" + newCounter + ");\'>X</button></td>";'
 		html += '\n    newCounter--;'
 		html += "\n}"
 		
@@ -242,12 +272,13 @@ class Artifact(Base):
 		html += '\n     <td><input type="text" id="artifact_%s_language" value="%s" number=\'2\' pattern=\'[a-z]{2}\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(languageMsg)\'/></td>' % (artifact['id'], artifact['language'])
 		html += '\n     <td><input type="text" id="artifact_%s_mins" value="%s" number=\'3\' pattern=\'[0-9]*\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(minsMsg)\'/></td><td><input type="text" id="artifact_%s_secs" value="%s" number=\'3\' pattern=\'[0-9]+\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(secsMsg)\'/></td>' % (artifact['id'], minutes, artifact['id'], seconds)
 		html += '\n     <td><input type="text" id="artifact_%s_date" value="%s"/></td>' % (artifact['id'], myDate)
-		html += '\n     <td><button style="color:black;">&check;</button></td>'
-		html += '\n     <td><button style="color:black;">X</button></td>'
+		html += '\n     <td><button style="color:black;" onclick="update_video(\'%s\');">&check;</button></td>' % (artifact['id'])
+		html += '\n     <td><button style="color:black;" onclick="delete_video(\'%s\');">X</button></td>' % (artifact['id'])
 		html += '\n   </tr>'
 		return html
 
 
+	# This returns a video attached to a specific run
 	@classmethod
 	def get_run_videos(cls, run_id):
 		command = "SELECT * FROM artifacts_to_runs WHERE run_id = '%s'" % run_id
@@ -257,4 +288,17 @@ class Artifact(Base):
 			return "none"
 		else:
 			 return results[0][0]
+
+	# This returns the runs attached to videos
+	@classmethod
+	def get_runs_video(cls, video_id):
+		command = "SELECT * FROM artifacts_to_runs WHERE video_id=%s" % video_id
+		print (command)
+		results = cls.execute_commands([command], failOnException=True, fetching=True)
+		print (results)
+		myResults = []
+		for result in results:
+			myResults.append(result[1])
+		return myResults
+
 #Artifact.create()

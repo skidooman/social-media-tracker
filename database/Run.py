@@ -491,7 +491,6 @@ class Run(Base):
 		artifactsDatabase = []
 		if campaign:
 			artifactsDatabase = Artifact.getArtifactsForCampaign(campaign)
-			print ('ARTIFACTS: %s' % artifactsDatabase)
 
 		for record in records:
 			recordNum += 1

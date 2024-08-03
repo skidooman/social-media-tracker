@@ -18,6 +18,69 @@ function del_campaign(user_id, id)
 	}
 }
 
+function delete_video_gui(video, runs)
+{
+	// If we are reaching here, we can delete the entry in the table and the selector
+	// Delete the selector entry
+	var selector = document.getElementById('artifact_selected');
+	for (var j=1; j < selector.options.length; j++) {
+		if (selector.options[j].value == video) {
+			selector.remove(j);
+			break;
+		}
+	}
+
+	// Delete all the runs' checks, change for X
+	for (var i=0; i < runs.length; i++) {
+		var entry = document.getElementById('art_' + runs[i]);
+		entry.innerHTML = 'X';
+	}
+
+	// Delete entry in the table
+	var table = document.getElementById('artifacts');
+	for (var j=1; j < table.rows.length; j++) {
+		alert(table.rows[j].cells[0].innerHTML);
+		if (table.rows[j].cells[0].innerHTML == video) { table.deleteRow(j); break;}
+	}
+}
+
+function delete_video(video)
+{
+	// That "video" could be either the video_id or the video_div, if a video_id wasn't assigned yet
+	// A video_div would start with '-'
+	var video_id = video;
+	if (video.startsWith('-')) video_id = document.getElementById(video).text;
+
+	alert(video_id);
+	if (video_id != 'Unsaved') {
+		// Eliminate this video in the database
+		// First, find if this id is used in this campaign
+		fetch('/get_runs_video/' + video_id)
+		  .then(response => response.text())
+		  .then(data => {
+			alert(data);
+			// If there are any run entries, these need to be eliminated later
+			// But first try to delete the entry in the database
+			fetch('/delete_runs_video/' + video_id)
+			.then(response => response.code)
+			.then(code => {
+				if (code==200) { delete_video_gui(video_id, data); alert('video ' + video_id + ' erased');}
+				else { alert('Error, video ' + video_id + ' not erased'); return;
+				}
+			})
+			.catch (error => { alert(error); return;});
+		
+			}
+		)
+		  .catch(error => {
+			alert(error); return;
+			}
+		);
+
+	} else delete_video_gui(video);
+
+}
+
 var run_id_selected = 0;
 
 
