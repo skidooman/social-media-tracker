@@ -49,10 +49,7 @@ function delete_video(video)
 	// That "video" could be either the video_id or the video_div, if a video_id wasn't assigned yet
 	// A video_div would start with '-'
 	var video_id = video;
-	if (video.startsWith('-')) video_id = document.getElementById(video).text;
-
-	alert(video_id);
-	if (video_id != 'Unsaved') {
+	if (video_id instanceof String) {
 		// Eliminate this video in the database
 		// First, find if this id is used in this campaign
 		fetch('/get_runs_video/' + video_id)
@@ -77,7 +74,15 @@ function delete_video(video)
 			}
 		);
 
-	} else delete_video_gui(video);
+	} else { console.log('int');  
+		var table=document.getElementById('artifacts');
+		for (var j=1; j < table.rows.length; j++){
+			if (table.rows[j].cells[0].getElementsByTagName('div')[0].id == video + '_artifact_id'){
+				table.deleteRow(j);
+				break;
+			}
+		}
+	}
 
 }
 
