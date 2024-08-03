@@ -22,7 +22,6 @@ function delete_video_gui(video, runs)
 {
 	// If we are reaching here, we can delete the entry in the table and the selector
 	// Delete the selector entry
-	console.log('1');
 	var selector = document.getElementById('artifact_selected');
 	for (var j=1; j < selector.options.length; j++) {
 		if (selector.options[j].value == video) {
@@ -32,7 +31,6 @@ function delete_video_gui(video, runs)
 	}
 
 	// Delete all the runs' checks, change for X
-	console.log('2');
 	for (var i=0; i < runs.length; i++) {
 		console.log('art_' + runs[i]);
 		var entry = document.getElementById('art_' + runs[i]);
@@ -40,20 +38,12 @@ function delete_video_gui(video, runs)
 	}
 
 	// Delete entry in the table
-	console.log('3')
 	var table = document.getElementById('artifacts');
 	for (var j=1; j < table.rows.length; j++) {
-		alert(table.rows[j].cells[0].innerHTML);
-		console.log('4');
-		console.log(table.rows[j].cells[0].innerHTML);
-		console.log(video);
 		var code = table.rows[j].cells[0].innerHTML;
 		if (code.startsWith('<')) code = table.rows[j].cells[0].getElementsByTagName('div')[0].innerHTML;
-		console.log(code);
-		if (code == video) { console.log('5'); table.deleteRow(j); break;}
-		console.log('6');
+		if (code == video) {  table.deleteRow(j); break;}
 	}
-	console.log('7');
 }
 
 function delete_video(video)
@@ -84,7 +74,6 @@ function delete_video(video)
 			fetch('/delete_runs_video/' + video_id)
 			.then(response => response.status)
 			.then(code => {
-				console.log('code: ' + code);
 				if (code==200) { delete_video_gui(video_id, data); alert('video ' + video_id + ' erased');}
 				else { alert('Error, video ' + video_id + ' not erased'); return;
 				}
@@ -280,6 +269,41 @@ function load_runs(url)
 
 	 
 	//alert(answer);
+}
+
+function update_selector(id, format, language, seconds, date) {
+	var text = '';
+	switch(format){
+		case '0':
+			text += 'Video Horizontal: ';
+			break;
+		case '1':
+			text += 'Video Vertical: ';
+			break;
+		case '2':
+			text += 'Image: ';
+			break;
+		default:
+			text += 'Other: ';
+			break;
+	}
+
+	var mins = Math.floor(seconds / 60);
+	seconds -= mins*60;
+	text += mins + ':' + seconds + ' ';
+	
+	var selector = document.getElementById('artifact_selected');
+	// Case 1: the option is already available. But it may need to be updated
+	for (var i = 0; i < selector.options.length; i++) {
+		if (selector.options[i].value == id) {
+			selector.options[i].innerHTML = text;
+			return;
+		}
+	}
+	// Case 2: the option is a new one
+	var option = new Option(text);
+	option.value = id;
+	selector.add(option)
 }
 
 function filter(url, runs_or_campaigns)

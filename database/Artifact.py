@@ -81,26 +81,21 @@ class Artifact(Base):
 		cursor = conn.cursor()
 
 		# Any mention in artifacts_to_runs need to be dropped
-		print ('deleting runs')
 		command = "DELETE FROM artifacts_to_runs WHERE video_id=%s" % int(video_id)
 		result = cursor.execute(command)
 
 		# Any mention in campaigns_to_artifacts need to be dropped
-		print ('deleting campaigns')
 		command = "DELETE FROM campaigns_to_artifacts WHERE video_id=%s" % int(video_id)
 		result = cursor.execute(command)
 
 		# Artifact can now be dropped
-		print ('deleting artifact')
 		command = "DELETE FROM artifacts WHERE id=%s" % int(video_id)
 		result = cursor.execute(command)
-		print ('ok')
 
 		# If everything went fine, then you can commit
 		conn.commit()
 		conn.close()
 		cursor.close()
-		print ('done')
 
 	@classmethod
 	def delete_run_videos(cls, run_id):
@@ -184,7 +179,6 @@ class Artifact(Base):
 		html += '\n    var minsCell = document.getElementById(index+"_artifact_mins").value;'
 		html += '\n    var secsCell = document.getElementById(index+"_artifact_secs").value;'
 		html += '\n    var idCell = document.getElementById(index+"_artifact_id").innerHTML;'
-		html += '\n alert(idCell);'
 		html += '\n    var formatCell = document.getElementById(index+"_artifact_format").value;'
 		html += '\n    var dateCell = document.getElementById(index+"_artifact_date").value;'
 
@@ -215,7 +209,7 @@ class Artifact(Base):
 		html += "\n    body: payload,"
 		html += "\n    headers: {'Content-type': 'application/json; charset=UTF-8', }"
 		html += "\n  });"
-		html += "\n  if (response.ok) { alert('Saved'); document.getElementById(index+'_artifact_id').innerHTML=await response.text(); } else { alert('Server did not honor request'); }} catch {alert('Unknown failure');}" 
+		html += "\n  if (response.ok) { alert('Saved'); id=await response.text(); update_selector(id, format, langCell, seconds, myDate.toISOString().split('T')[0]); document.getElementById(index+'_artifact_id').innerHTML=id;  } else { alert('Server did not honor request'); }} catch {alert('Unknown failure');}" 
 
 		html += '\n}'
 
@@ -269,9 +263,9 @@ class Artifact(Base):
 			html += '\n     <td><select id="artifact_%s_orientation"><option value="image" selected>Image</option><option value="horizontal">Horizontal</option></select></td>' % (artifact['id'])
 		else:
 			html += '\n     <td><select id="artifact_%s_orientation"><option value="other">Other</option><option value="horizontal" selected>Horizontal</option></select></td>' % (artifact['id'])
-		html += '\n     <td><input type="text" id="artifact_%s_language" value="%s" number=\'2\' pattern=\'[a-z]{2}\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(languageMsg)\'/></td>' % (artifact['id'], artifact['language'])
-		html += '\n     <td><input type="text" id="artifact_%s_mins" value="%s" number=\'3\' pattern=\'[0-9]*\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(minsMsg)\'/></td><td><input type="text" id="artifact_%s_secs" value="%s" number=\'3\' pattern=\'[0-9]+\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(secsMsg)\'/></td>' % (artifact['id'], minutes, artifact['id'], seconds)
-		html += '\n     <td><input type="text" id="artifact_%s_date" value="%s"/></td>' % (artifact['id'], myDate)
+		html += '\n     <td><input type="text" id="artifact_%s_language" value="%s" size=\'2\' number=\'2\' pattern=\'[a-z]{2}\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(languageMsg)\'/></td>' % (artifact['id'], artifact['language'])
+		html += '\n     <td><input type="text" id="artifact_%s_mins" value="%s" size=\'3\' number=\'3\' pattern=\'[0-9]*\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(minsMsg)\'/></td><td><input type="text" id="artifact_%s_secs" value="%s" number=\'3\' pattern=\'[0-9]+\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(secsMsg)\'/></td>' % (artifact['id'], minutes, artifact['id'], seconds)
+		html += '\n     <td><input type="text" id="artifact_%s_date" value="%s" size=\'3\'/></td>' % (artifact['id'], myDate)
 		html += '\n     <td><button style="color:black;" onclick="update_video(\'%s\');">&check;</button></td>' % (artifact['id'])
 		html += '\n     <td><button style="color:black;" onclick="delete_video(\'%s\');">X</button></td>' % (artifact['id'])
 		html += '\n   </tr>'
