@@ -22,6 +22,7 @@ function delete_video_gui(video, runs)
 {
 	// If we are reaching here, we can delete the entry in the table and the selector
 	// Delete the selector entry
+	console.log('1');
 	var selector = document.getElementById('artifact_selected');
 	for (var j=1; j < selector.options.length; j++) {
 		if (selector.options[j].value == video) {
@@ -31,17 +32,28 @@ function delete_video_gui(video, runs)
 	}
 
 	// Delete all the runs' checks, change for X
+	console.log('2');
 	for (var i=0; i < runs.length; i++) {
+		console.log('art_' + runs[i]);
 		var entry = document.getElementById('art_' + runs[i]);
 		entry.innerHTML = 'X';
 	}
 
 	// Delete entry in the table
+	console.log('3')
 	var table = document.getElementById('artifacts');
 	for (var j=1; j < table.rows.length; j++) {
 		alert(table.rows[j].cells[0].innerHTML);
-		if (table.rows[j].cells[0].innerHTML == video) { table.deleteRow(j); break;}
+		console.log('4');
+		console.log(table.rows[j].cells[0].innerHTML);
+		console.log(video);
+		var code = table.rows[j].cells[0].innerHTML;
+		if (code.startsWith('<')) code = table.rows[j].cells[0].getElementsByTagName('div')[0].innerHTML;
+		console.log(code);
+		if (code == video) { console.log('5'); table.deleteRow(j); break;}
+		console.log('6');
 	}
+	console.log('7');
 }
 
 function delete_video(video)
@@ -49,18 +61,30 @@ function delete_video(video)
 	// That "video" could be either the video_id or the video_div, if a video_id wasn't assigned yet
 	// A video_div would start with '-'
 	var video_id = video;
-	if (video_id instanceof String) {
+	if (typeof video_id === "number" && video_id < 0){
+		try { 
+			video_id = document.getElementById(video_id+'_artifact_id').innerHTML;
+		}
+		catch 
+		{
+			console.log('error');
+		}
+	}
+	console.log(video);
+	console.log(typeof video_id);
+	if (video_id != 'Unsaved') {
 		// Eliminate this video in the database
 		// First, find if this id is used in this campaign
 		fetch('/get_runs_video/' + video_id)
-		  .then(response => response.text())
+		  .then(response => response.json())
 		  .then(data => {
 			alert(data);
 			// If there are any run entries, these need to be eliminated later
 			// But first try to delete the entry in the database
 			fetch('/delete_runs_video/' + video_id)
-			.then(response => response.code)
+			.then(response => response.status)
 			.then(code => {
+				console.log('code: ' + code);
 				if (code==200) { delete_video_gui(video_id, data); alert('video ' + video_id + ' erased');}
 				else { alert('Error, video ' + video_id + ' not erased'); return;
 				}
