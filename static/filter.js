@@ -60,8 +60,6 @@ function delete_video(video)
 			console.log('error');
 		}
 	}
-	console.log(video);
-	console.log(typeof video_id);
 	if (video_id != 'Unsaved') {
 		// Eliminate this video in the database
 		// First, find if this id is used in this campaign
@@ -287,7 +285,7 @@ function update_selector(id, format, language, seconds, date) {
 
 	var mins = Math.floor(seconds / 60);
 	seconds -= mins*60;
-	text += mins + ':' + seconds + ' ';
+	text += mins + ':' + seconds + ' ' + language;
 	
 	var selector = document.getElementById('artifact_selected');
 	// Case 1: the option is already available. But it may need to be updated

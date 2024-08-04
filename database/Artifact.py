@@ -52,6 +52,8 @@ class Artifact(Base):
 			conn.close()
 			cursor.close()
 		else:
+			print ('UPDATING')
+			print (format)
 			command = "UPDATE artifacts SET format='%s', language='%s', seconds=%s, created='%s' WHERE id=%s" % (format, language, seconds,  date_creation, video_id)
 			cls.execute_commands([command], failOnException=True)
 		return video_id
@@ -185,7 +187,7 @@ class Artifact(Base):
 		html += '\n    if (lang || secs || date) { var msg="Missing or faulty: "; if(lang) msg += " language"; if(mins) msg += " minutes"; if(secs) msg += " seconds"; if(date) msg += " date";  alert(msg); return;}'
 		
 		# Phase 2: Attempt to save to server
-		html += '\n  var id = idCell; if (!/^\d+$/.test(id)) id = -1'
+		html += '\n  var id = idCell; if (!/^\d+$/.test(id)) id = -1;'
 		html += '\n  var seconds = parseInt(secsCell); if (minsCell != "") seconds += parseInt(minsCell)*60;'
 		html += '\n  var myDate = new Date(dateCell);'
 		html += '\n  var format = document.getElementById(index+"_artifact_format").value;'
@@ -227,7 +229,7 @@ class Artifact(Base):
 				import math
 				mins = math.floor(seconds/60)
 				seconds = seconds - (mins*60)
-				description += "%d:%02d" % (mins, seconds)
+				description += "%d:%02d %s" % (mins, seconds, data['language'])
 			html += "\n      <option value='%s'>%s</option>" % (data['id'], description)
 		html += "\n   </select><br><b><table border='0' width='100%'><tr><td width='20%'></td><td width='20%'><button onclick='link_artifact();'>&check;</button></td><td width='20%'></td><td width='20%'><button onclick='document.getElementById(\"artifact_selector\").style.visibility=\"hidden\";'>X</button></td><td width='20%'></td></tr></table></b></center></div>"
 		html += '\n   <h4>Artifacts                  '
@@ -248,19 +250,24 @@ class Artifact(Base):
 		minutes = int(math.floor(int(artifact['seconds'])/60))
 		seconds = int(artifact['seconds']) - (minutes*60)
 		myDate = artifact['date']
-		html = '\n   <tr><td>%s</td>' % artifact['id']
+		html = '\n   <tr><td><div id="%s_artifact_id">%s</div></td>' % (artifact['id'], artifact['id'])
+		html += '\n     <td><select id="%s_artifact_format"><option value="0" ' % (artifact['id'])
 		if artifact['format'] == '0':
-			html += '\n     <td><select id="artifact_%s_orientation"><option value="horizontal" selected>Horizontal</option><option value="horizontal">Horizontal</option></select></td>' % (artifact['id'])
-		elif artifact['format'] == '1':
-			html += '\n     <td><select id="artifact_%s_orientation"><option value="vertical" selected>Vertical</option><option value="horizontal">Horizontal</option></select></td>' % (artifact['id'])
-		elif artifact['format'] == '2':
-			html += '\n     <td><select id="artifact_%s_orientation"><option value="image" selected>Image</option><option value="horizontal">Horizontal</option></select></td>' % (artifact['id'])
-		else:
-			html += '\n     <td><select id="artifact_%s_orientation"><option value="other">Other</option><option value="horizontal" selected>Horizontal</option></select></td>' % (artifact['id'])
-		html += '\n     <td><input type="text" id="artifact_%s_language" value="%s" size=\'2\' number=\'2\' pattern=\'[a-z]{2}\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(languageMsg)\'/></td>' % (artifact['id'], artifact['language'])
-		html += '\n     <td><input type="text" id="artifact_%s_mins" value="%s" size=\'3\' number=\'3\' pattern=\'[0-9]*\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(minsMsg)\'/></td><td><input type="text" id="artifact_%s_secs" value="%s" size=\'3\' number=\'3\' pattern=\'[0-9]+\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(secsMsg)\'/></td>' % (artifact['id'], minutes, artifact['id'], seconds)
-		html += '\n     <td><input type="text" id="artifact_%s_date" value="%s" size=\'10\'/></td>' % (artifact['id'], myDate)
-		html += '\n     <td><button style="color:black;" onclick="update_video(\'%s\');">&check;</button></td>' % (artifact['id'])
+			html += 'selected'
+		html += '>Horizontal</option><option value="1" '
+		if artifact['format'] == '1':
+			html += 'selected'
+		html += '>Vertical</option><option value="2" '
+		if artifact['format'] == '2':
+			html += 'selected'
+		html += '>Image</option><option value="9" '
+		if artifact['format'] == '9':
+			html += 'selected'
+		html += '>Other</option></select></td>'
+		html += '\n     <td><input type="text" id="%s_artifact_language" value="%s" size=\'2\' number=\'2\' pattern=\'[a-z]{2}\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(languageMsg)\'/></td>' % (artifact['id'], artifact['language'])
+		html += '\n     <td><input type="text" id="%s_artifact_mins" value="%s" size=\'3\' number=\'3\' pattern=\'[0-9]*\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(minsMsg)\'/></td><td><input type="text" id="%s_artifact_secs" value="%s" size=\'3\' number=\'3\' pattern=\'[0-9]+\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(secsMsg)\'/></td>' % (artifact['id'], minutes, artifact['id'], seconds)
+		html += '\n     <td><input type="date" id="%s_artifact_date" value="%s" size=\'10\'/></td>' % (artifact['id'], myDate)
+		html += '\n     <td><button style="color:black;" onclick="save_artifact(\'%s\');">&check;</button></td>' % (artifact['id'])
 		html += '\n     <td><button style="color:black;" onclick="delete_video(\'%s\');">X</button></td>' % (artifact['id'])
 		html += '\n   </tr>'
 		return html
