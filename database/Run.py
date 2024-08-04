@@ -93,7 +93,6 @@ class Run(Base):
 			mediaDir[medium[0]] = number[0][0]
 		answer.append(mediaDir)
 
-		print (answer)
 		return answer
 
 	@classmethod
@@ -361,7 +360,6 @@ class Run(Base):
 				points = Data.getRecords(user_id, record[0])
 				try:
 					currentPoint = points[len(points)-1]
-					#print (currentPoint)
 					views += currentPoint[3]
 					likes += currentPoint[4]
 					comments += currentPoint[5]
@@ -373,11 +371,9 @@ class Run(Base):
 				except Exception:
 					break
 			return views, likes, comments, reposts, displays, minutes
-		print ('getting records')
 		records = cls.getRecords(user_id, image, external_text, internal_video, external_video, simple,
 			original_date_before, original_date_after, linkedin, tiktok, youtube, languages,
 			orderBy=orderBy, ascending=ascending)
-		print ('records ok (%s)' % len(records))
 
 		# If a campaign ID is provided, then it means we may need to turn on some of the checks
 		# Checks would be turned on if the runs_to_campaigns tables has the two associated
@@ -392,7 +388,6 @@ class Run(Base):
 
 		# Recorder the records in case you want to list the selected records first
 		if listSelectedFirst:
-			print ('in listSelectedFirst')
 			selectedRecords = []
 			unselectedRecords = []
 			for record in records:
@@ -422,8 +417,6 @@ class Run(Base):
 				if endRecord > len(records) - 1:
 					endRecord = len(records)
 				records = records[startRecord:endRecord]
-
-		print ('noew records is %s' % len(records))
 
 		# Get the most recent date for LinkedIn
 		linkedIn_mostRecentDate = datetime.datetime.strptime('1970-01-01', '%Y-%m-%d').date()
@@ -619,9 +612,6 @@ class Run(Base):
 			html += '\n\t</table>'
 			html += '\n</div>'
 
-		print ('html generation done')
-		print (html)
-
 		return html, cls.getKeywordHtml(user_id, records)
 
 	@classmethod
@@ -733,7 +723,6 @@ class Run(Base):
 	@classmethod
 	def update(cls, user_id, id, language):
 		command = "UPDATE Runs SET language='%s' WHERE (user_id='%s' AND id='%s')" % (language, user_id, id)
-		print ('running %s' % command)
 		cls.execute_commands([command], fetching=False)
 		return True
 

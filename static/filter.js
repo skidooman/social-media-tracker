@@ -68,7 +68,6 @@ function delete_video(video)
 		fetch('/get_runs_video/' + video_id)
 		  .then(response => response.json())
 		  .then(data => {
-			alert(data);
 			// If there are any run entries, these need to be eliminated later
 			// But first try to delete the entry in the database
 			fetch('/delete_runs_video/' + video_id)
@@ -267,8 +266,6 @@ function load_runs(url)
 
 	  }).catch(error => console.error('Error:', error));
 
-	 
-	//alert(answer);
 }
 
 function update_selector(id, format, language, seconds, date) {
@@ -339,10 +336,8 @@ function filter(url, runs_or_campaigns)
 	languages = []
 	for (var i=0; i < inputs.length; i++)
 	{
-		//alert(inputs[i].name);
 		if (inputs[i].name == 'language')
 		{
-			//alert('CAUGHT ' + inputs[i].id);
 			if (inputs[i].checked) languages.push(inputs[i].id);
 		}
 	}

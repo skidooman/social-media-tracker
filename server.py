@@ -237,7 +237,7 @@ def edit_campaign(user_id, campaign_id):
 
 	# We shouldn't allow inserting new Artefacts if an ID wasn't attributed
 	if int(campaign_id) > -1:
-		html += Artifact.Artifact.getExistingArtifactsTable()
+		html += Artifact.Artifact.getExistingArtifactsTable(campaign_id)
 
 	html += '\n </tr>'
 	html += "\n</table>"
@@ -590,7 +590,6 @@ def submit_campaign():
 @app.route('/update_artefact', methods=['POST'])
 def update_artefact():
 	data = request.json
-	print (data)
 	try:
 		video_id = Artifact.Artifact.addArtifact(data['id'], data['campaign'], data['language'], data['format'], data['seconds'], data['date'])
 	except Exception as e:
@@ -600,37 +599,26 @@ def update_artefact():
 
 @app.route('/upload/<media>', methods=['POST', 'GET'])
 def upload_file(media):
-	print ('upload %s' % media)
-	print (request.method)
 	if request.method == 'POST':
-		print ('request data is')
-		print (request.data)
 		# check if the post request has the file part
 		if 'file' not in request.files:
 			flash('No file part')
 			return redirect(request.url)
 		file = request.files['file']
-		print ('file is')
-		print (file)
 		# If the user does not select a file, the browser submits an
 		# empty file without a filename.
 		if file.filename == '':
 			flash('No selected file')
 			return redirect(request.url)
 		if file and allowed_file(file.filename, media):
-			print ('allowed file')
 			filename = secure_filename(file.filename)
-			print ('filename: %s' % filename)
 			file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-			print ('file save ok')
 			try:
 				if media == 'linkedin':
-					print ('calling add_linkedIn')
 					Importing.add_linkedIn(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 				elif media == 'tiktok':
 					Importing.add_tiktok(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 				elif media == 'youtube':
-					print ('in youtube')
 					Importing.add_youtube(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 				flash ('upload successful')
 				return redirect('/')

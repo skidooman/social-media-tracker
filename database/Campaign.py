@@ -192,7 +192,6 @@ class Campaign(Base):
 
 		html = ""
 		if startRecord == 0:
-			##print ('RECORDS: %s' % len(records))
 			html = '<h2>Records: %s</h2>' % total_records
 			html += '<div class="table-wrap">\n\t<table class="sortable">'
 			html += '\n\t\t<thead>'
@@ -234,9 +233,7 @@ class Campaign(Base):
 			types = {}
 			views = 0
 			for run in runs:
-				#print (run)
 				runRecord = Run.getRecord(user_id, run[0])
-				#print (runRecord)
 				if not mediaDict[runRecord[9]] in media:
 					media.append(mediaDict[runRecord[9]])
 				if not runRecord[10] in languages:
@@ -296,7 +293,6 @@ class Campaign(Base):
 			html += '</td>'
 			html += '\n\t\t\t\t<td class="num">%s</td>' % views
 			html += '\n\t\t\t\t<td style="max-width: 50px; overflow:hidden; text-overflow: hidden;" width="50"><div class="expandable" id=\'path%s\' onclick="toggle(\'path%s\');" style="max-width:200px; white-space:nowrap; overflow: hidden; text-overflow: ellipsis;">%s</div></td>' % (recordNum, recordNum, record[3])
-			#print (record)
 			html += '\n\t\t\t\t<td><table border="0"><tr><td><button id="edit_%s" style="color: black;" onclick="edit_campaign(\'%s\', \'%s\');">Edit</button></td><td><button id="del_%s" style="color: black; background-color: transparent;" onclick="del_campaign(\'%s\', \'%s\');">Del</button></td></tr></table></td>' % (record[0], user_id, record[0], record[0], user_id, record[0]) 
 			html += '\n\t\t\t</tr>'
 			recordNum += 1

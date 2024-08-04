@@ -21,9 +21,7 @@ class Artifact(Base):
 		        'language VARCHAR(2),'
 		        'seconds INT,'
 			'created DATE)')
-		#print (command)
 		cls.execute_commands([command])
-		#print ("OK")
 
 		command = ('CREATE TABLE artifacts_to_runs('
 		        'video_id INT,'
@@ -62,15 +60,12 @@ class Artifact(Base):
 	def add_run_videos(cls, video_id, run_id):
 		# The logic here is that a run can only have one video
 		# So if you delete all of these entries, you should be good.
-		print ('deleting')
 		command = "DELETE FROM artifacts_to_runs WHERE run_id = '%s'" % run_id
 		cls.execute_commands([command], failOnException=True)
 
-		print ('adding')
 		# If this is done correct, then and only then should you insert the following
-		command = "INSERT INTO artifacts_to_runs (video_id, run_id) VALUES (%s, %s)" % (video_id, run_id)
+		command = "INSERT INTO artifacts_to_runs (video_id, run_id) VALUES (%s, '%s')" % (video_id, run_id)
 		cls.execute_commands([command], failOnException=True)
-		print ('OK')
 
 	# Deletes all mentions of a specific video id
 	@classmethod
@@ -112,9 +107,9 @@ class Artifact(Base):
 
 	# Find all campaigns associated with runs
 	@classmethod
-	def getAllCampaignArtifacts(cls):
+	def getAllCampaignArtifacts(cls, campaign_id):
 	        dict = {}
-	        command = "SELECT * FROM campaigns_to_artifacts"
+	        command = "SELECT * FROM campaigns_to_artifacts WHERE campaign_id=%s" % campaign_id
 	        results = cls.execute_commands([command], fetching=True)
 	        for result in results:
 	                if result[0] in dict.keys():
@@ -144,7 +139,7 @@ class Artifact(Base):
 
 
 	@classmethod
-	def getExistingArtifactsTable(cls):
+	def getExistingArtifactsTable(cls, campaign_id):
 		html = "\n <script>"
 		html += '\n    var languageMsg = "Please provide a valid two-letter language code (lower case)";'
 		html += '\n    var minsMsg = "Please provide a valid time in minutes or leave empty";'
@@ -215,7 +210,7 @@ class Artifact(Base):
 
 		html += "</script>"
 		html += "\n   <div id='artifact_selector' z-index='50' style='visibility: hidden; position: absolute; background-color: black; color: white;'><center><b>Select</b><br><select id='artifact_selected'><option value='null'></option>"
-		artifacts = cls.getAllCampaignArtifacts()
+		artifacts = cls.getAllCampaignArtifacts(campaign_id)
 		for artifact in artifacts.keys():
 			data = cls.getArtifact(artifact)
 			description = ''
@@ -250,7 +245,6 @@ class Artifact(Base):
 		minutes = 0
 		seconds = 0
 		import math
-		print (artifact)
 		minutes = int(math.floor(int(artifact['seconds'])/60))
 		seconds = int(artifact['seconds']) - (minutes*60)
 		myDate = artifact['date']
@@ -264,8 +258,8 @@ class Artifact(Base):
 		else:
 			html += '\n     <td><select id="artifact_%s_orientation"><option value="other">Other</option><option value="horizontal" selected>Horizontal</option></select></td>' % (artifact['id'])
 		html += '\n     <td><input type="text" id="artifact_%s_language" value="%s" size=\'2\' number=\'2\' pattern=\'[a-z]{2}\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(languageMsg)\'/></td>' % (artifact['id'], artifact['language'])
-		html += '\n     <td><input type="text" id="artifact_%s_mins" value="%s" size=\'3\' number=\'3\' pattern=\'[0-9]*\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(minsMsg)\'/></td><td><input type="text" id="artifact_%s_secs" value="%s" number=\'3\' pattern=\'[0-9]+\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(secsMsg)\'/></td>' % (artifact['id'], minutes, artifact['id'], seconds)
-		html += '\n     <td><input type="text" id="artifact_%s_date" value="%s" size=\'3\'/></td>' % (artifact['id'], myDate)
+		html += '\n     <td><input type="text" id="artifact_%s_mins" value="%s" size=\'3\' number=\'3\' pattern=\'[0-9]*\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(minsMsg)\'/></td><td><input type="text" id="artifact_%s_secs" value="%s" size=\'3\' number=\'3\' pattern=\'[0-9]+\' oninput=\'this.reportValidity()\' oninvalid=\'setCustomValidity(secsMsg)\'/></td>' % (artifact['id'], minutes, artifact['id'], seconds)
+		html += '\n     <td><input type="text" id="artifact_%s_date" value="%s" size=\'10\'/></td>' % (artifact['id'], myDate)
 		html += '\n     <td><button style="color:black;" onclick="update_video(\'%s\');">&check;</button></td>' % (artifact['id'])
 		html += '\n     <td><button style="color:black;" onclick="delete_video(\'%s\');">X</button></td>' % (artifact['id'])
 		html += '\n   </tr>'
@@ -277,7 +271,6 @@ class Artifact(Base):
 	def get_run_videos(cls, run_id):
 		command = "SELECT * FROM artifacts_to_runs WHERE run_id = '%s'" % run_id
 		results = cls.execute_commands([command], failOnException=True, fetching=True)
-		print (results)
 		if len(results) == 0:
 			return "none"
 		else:
@@ -287,9 +280,7 @@ class Artifact(Base):
 	@classmethod
 	def get_runs_video(cls, video_id):
 		command = "SELECT * FROM artifacts_to_runs WHERE video_id=%s" % video_id
-		print (command)
 		results = cls.execute_commands([command], failOnException=True, fetching=True)
-		print (results)
 		myResults = []
 		for result in results:
 			myResults.append(result[1])
