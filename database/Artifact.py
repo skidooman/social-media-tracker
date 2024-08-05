@@ -103,22 +103,19 @@ class Artifact(Base):
 
 	@classmethod
 	def getArtifact(cls, id):
-		command = "SELECT * FROM artifacts"
+		command = "SELECT * FROM artifacts WHERE id=%s" % id
 		result = cls.execute_commands([command], fetching=True)
 		return {"id": result[0][0], "format": result[0][1], "language": result[0][2], "seconds": result[0][3], "date":result[0][4]}
 
 	# Find all campaigns associated with runs
 	@classmethod
 	def getAllCampaignArtifacts(cls, campaign_id):
-	        dict = {}
+	        list = []
 	        command = "SELECT * FROM campaigns_to_artifacts WHERE campaign_id=%s" % campaign_id
 	        results = cls.execute_commands([command], fetching=True)
 	        for result in results:
-	                if result[0] in dict.keys():
-                        	dict[result[0]].append(result[1])
-	                else:
-                        	dict[result[0]] = [result[1]]
-	        return dict
+	                list.append(result[1])
+	        return list
 
 	# This should return a map run_id => video_id
 	@classmethod
@@ -128,9 +125,8 @@ class Artifact(Base):
 		myDict = {}
 		for result in results:
 			artifacts = cls.getRunsForArtifact(result[1])
-			if len(artifacts):
-				myDict[artifacts[0][1]] = result[1]
-				break
+			for artifact in artifacts:
+				myDict[artifact[1]] = result
 		return myDict
 
 	@classmethod
@@ -213,7 +209,8 @@ class Artifact(Base):
 		html += "</script>"
 		html += "\n   <div id='artifact_selector' z-index='50' style='visibility: hidden; position: absolute; background-color: black; color: white;'><center><b>Select</b><br><select id='artifact_selected'><option value='null'></option>"
 		artifacts = cls.getAllCampaignArtifacts(campaign_id)
-		for artifact in artifacts.keys():
+		print ("ARTIFACTS: %s" % artifacts)
+		for artifact in artifacts:
 			data = cls.getArtifact(artifact)
 			description = ''
 			if data['format'] == '0':
@@ -236,8 +233,10 @@ class Artifact(Base):
 		html += '\n   <button id="add_artifact" onclick="add_artifact();" style="background-color: black; width: 40px;">Add</button></h4>'
 		html += '\n<table id="artifacts" width="25%"><tr><th>ID</th><th>Orientation</th><th>Lang</th><th>Mins</th><th>Secs</th><th>Created</th></tr>'
 
-		for artifact in artifacts.keys():
+		for artifact in artifacts:
+			print ('artifact number is %s' % artifact)
 			artifact = cls.getArtifact(artifact)
+			print ('description: %s' % artifact)
 			html += cls.getExistingArtifactsTableRow(artifact)
 		html += '\n</table>'
 		return html
