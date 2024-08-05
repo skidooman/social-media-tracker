@@ -37,9 +37,18 @@ class Campaign(Base):
 
 	@classmethod
 	def deleteRecord(cls, user_id, campaign_id):
-		command1 = "DELETE FROM runs_to_campaigns WHERE campaign_id=%s" % campaign_id
-		command2 = "DELETE FROM campaigns where id=%s" % campaign_id
-		return cls.execute_commands([command1, command2])
+		commands = []
+		# This is a bit more complex than before. If you delete a campaign, make sure all
+		# related Artifacts are deleted
+		command = "SELECT * FROM campaigns_to_artifacts WHERE campaign_id=%s" % campaign_id
+		results = cls.execute_commands([command], fetching=True)
+		for result in results:
+			commands.append("DELETE FROM artifacts_to_run WHERE video_id=%s" % result[1])
+			commands.append("DELETE FROM artifacts WHERE id=%s" % result[1])
+		commands.append("DELETE FROM campaigns_to_artifacts WHERE campaign_id=%s" % campaign_id)
+		commands.append("DELETE FROM runs_to_campaigns WHERE campaign_id=%s" % campaign_id)
+		commands.append("DELETE FROM campaigns where id=%s" % campaign_id)
+		return cls.execute_commands(commands)
 
 	@classmethod
 	def getRecord(cls, user_id, campaign_id):
